@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from portal_client import _sanitize  # noqa: E402
+from portal_client import _sanitize, _sanitize_value  # noqa: E402
 
 
 def test_list_vendors_names_are_clean(portal):
@@ -84,3 +84,32 @@ def test_sanitize_strips_invisible_and_control_chars():
 
 def test_sanitize_keeps_normal_whitespace():
     assert _sanitize("line one\nline two\ttabbed") == "line one\nline two\ttabbed"
+
+
+def test_sanitize_value_recurses_into_nested_dicts_and_lists():
+    zero_width_space = chr(0x200B)
+    dirty = {
+        "request_id": f"T{zero_width_space}1",
+        "address": {"line1": f"1{zero_width_space} A St", "city": "City"},
+        "tags": [f"a{zero_width_space}b", "c"],
+        "count": 3,
+    }
+    clean = _sanitize_value(dirty)
+    assert clean == {
+        "request_id": "T1",
+        "address": {"line1": "1 A St", "city": "City"},
+        "tags": ["ab", "c"],
+        "count": 3,
+    }
+
+
+def test_select_vendor_and_read_drafts_are_sanitized(portal):
+    # Regression test for the gap a security-review pass found: sanitize()
+    # was applied to vendor names/status text but not to select_vendor's
+    # returned address or read_drafts' returned records.
+    addr = portal.select_vendor("V1")
+    assert all(isinstance(v, str) for v in addr.values())
+
+    portal.fill_and_submit("SANI-1", "1 A St", "City", "00001", "Country")
+    drafts = portal.read_drafts()
+    assert drafts[0]["address"]["line1"] == "1 A St"

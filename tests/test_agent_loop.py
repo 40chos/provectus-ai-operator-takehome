@@ -53,6 +53,21 @@ class _ScriptedClient:
         return self.script[idx]
 
 
+def test_tools_schema_is_clean_and_covers_every_dispatched_tool_name():
+    """Guards against TOOL_INPUT_MODELS / TOOLS / _execute_tool's dispatch
+    silently drifting apart -- the single-source-of-truth guarantee this
+    whole validation layer depends on."""
+    assert set(agent.TOOL_INPUT_MODELS) == set(agent.TOOL_DESCRIPTIONS)
+    names_in_tools = {t["name"] for t in agent.TOOLS}
+    assert names_in_tools == set(agent.TOOL_INPUT_MODELS)
+    for tool in agent.TOOLS:
+        schema = tool["input_schema"]
+        assert "title" not in schema
+        assert "$defs" not in schema
+        for prop in schema.get("properties", {}).values():
+            assert "title" not in prop
+
+
 def test_cache_control_and_static_prompt_are_sent_on_every_call(portal, tmp_path):
     finish_response = _FakeResponse(
         [_tool_use_block("finish", {"status": "unresolved", "reason": "test"}, "t1")]

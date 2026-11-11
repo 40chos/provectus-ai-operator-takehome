@@ -26,6 +26,23 @@ def _sanitize(text: str) -> str:
     return "".join(ch for ch in text if ch.isprintable() or ch in "\n\t")
 
 
+def _sanitize_value(value):
+    """Recursively applies _sanitize to every string leaf of a JSON-shaped
+    value (dict/list/str), so every page-derived payload reaching the model
+    is covered -- not just the vendor list and status line. Address dicts
+    and saved-draft records are typed into the page by (in this exercise,
+    fictional) requests and echoed straight back through read_drafts()/
+    select_vendor(); the sanitization boundary must apply there too, not
+    only at the two places an earlier pass happened to add it first."""
+    if isinstance(value, str):
+        return _sanitize(value)
+    if isinstance(value, list):
+        return [_sanitize_value(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _sanitize_value(v) for k, v in value.items()}
+    return value
+
+
 @dataclass
 class Vendor:
     vendor_id: str
@@ -34,8 +51,16 @@ class Vendor:
 
 
 class PortalClient:
+    # The page is fully local/static with zero network latency -- Playwright's
+    # 30s default would only mask a genuine hang (e.g. a selector typo)
+    # behind a long wait. A short fail-fast timeout is appropriate for this
+    # specific fixture; it would be too aggressive against a real
+    # network-backed production UI.
+    DEFAULT_TIMEOUT_MS = 5000
+
     def __init__(self, page: Page):
         self.page = page
+        page.set_default_timeout(self.DEFAULT_TIMEOUT_MS)
         self._vendors: list[Vendor] = []
         self._load_vendor_list()
 
@@ -64,17 +89,22 @@ class PortalClient:
         if vendor_id not in [v.vendor_id for v in self._vendors]:
             return None
         self.page.select_option("#vendor", vendor_id)
+        # Safe to read #original immediately: portal.html's onchange handler
+        # is plain synchronous JS (no setTimeout/promise), so by the time
+        # select_option()'s event dispatch returns, the DOM mutation has
+        # already happened. This would need an explicit wait if the fixture
+        # ever simulated async latency here.
         original_text = self.page.inner_text("#original")
         try:
             original = json.loads(original_text)
         except json.JSONDecodeError:
             return None
-        return original.get("address")
+        return _sanitize_value(original.get("address"))
 
     def read_drafts(self) -> list[dict]:
         """Ground truth of saved state: parses the #drafts <pre> block."""
         text = self.page.inner_text("#drafts")
-        return json.loads(text)
+        return _sanitize_value(json.loads(text))
 
     def set_fail_switch(self, value: bool) -> None:
         """Toggle the 'Simulate failure on next save' checkbox."""
@@ -94,24 +124,12 @@ class PortalClient:
         self.page.fill("#postal_code", postal_code)
         self.page.fill("#country", country)
         self.page.click("button:has-text('Save draft')")
+        # Same synchronous-handler invariant as select_vendor above: the
+        # form's onsubmit is plain sync JS, so #status is already updated by
+        # the time .click() returns -- no wait_for_function needed here.
         return _sanitize(self.page.inner_text("#status"))
 
     def click_reset(self) -> None:
         """Reset fictional drafts -- used only for repeatable test runs,
         never mid-flow on a single request."""
         self.page.click("#reset")
-
-    def snapshot(self, selected_vendor_id: Optional[str] = None) -> dict:
-        """Compact text-like observation of current portal state, given to
-        the model instead of a screenshot (accessibility-tree style)."""
-        snap = {
-            "vendors": self.list_vendors(),
-            "saved_drafts": self.read_drafts(),
-        }
-        if selected_vendor_id:
-            original_text = self.page.inner_text("#original")
-            try:
-                snap["selected_vendor_original_address"] = json.loads(original_text)
-            except json.JSONDecodeError:
-                snap["selected_vendor_original_address"] = None
-        return snap

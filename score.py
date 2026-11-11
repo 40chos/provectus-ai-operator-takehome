@@ -26,7 +26,12 @@ def _status_matches(expected: str, actual_report: dict) -> bool:
 
 
 def score(report_path: Path, expected_path: Path) -> bool:
-    report = {r["request_id"]: r for r in json.loads(report_path.read_text())}
+    report_data = json.loads(report_path.read_text())
+    # run-report.json is now {"results": [...], "run_totals": {...}};
+    # accept the older bare-list shape too so this still works against any
+    # report produced before that wrapper was added.
+    results = report_data["results"] if isinstance(report_data, dict) else report_data
+    report = {r["request_id"]: r for r in results}
     expected = json.loads(expected_path.read_text())
 
     all_ok = True

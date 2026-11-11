@@ -91,7 +91,7 @@ response header, and that `MAX_STEPS` exhaustion unconditionally reported
 earlier in the same run -- both fixed (see `agent.py`).
 
 To make these fixes (and the earlier caching/retry additions) verifiable
-without re-spending API budget, a 33-test `pytest` suite was added under
+without re-spending API budget, a 43-test `pytest` suite was added under
 `tests/`:
 - `test_portal_client.py` / `test_controller.py` drive the real local portal
   through a real headless browser (Playwright is free; only the Anthropic
@@ -105,6 +105,55 @@ without re-spending API budget, a 33-test `pytest` suite was added under
 
 Run `pytest tests/ -v` from `submission/` -- zero Anthropic API calls, zero
 cost, safe to run as many times as useful.
+
+## Third pass: deterministic tool-input validation (is_error contract)
+
+A third round of independent, slice-scoped adversarial review (four focused
+reviewers -- determinism/validation, secrets/security, Playwright reliability,
+observability/testing/structure -- each reviewing only its own slice so
+nothing got lost to context limits) found several more real issues, since
+confirmed fixed and re-tested:
+
+- **Tool input is now Pydantic-validated, not trusted.** The provider's JSON
+  schema is a strong hint, not a guarantee -- a malformed tool_use (missing
+  field, wrong type, unexpected extra field) previously crashed the whole
+  request with a bare `KeyError`. `agent.py:TOOL_INPUT_MODELS` is now the
+  single source of truth: the JSON schema sent to Claude is *generated from*
+  these Pydantic models (not hand-duplicated), and every tool_use is
+  validated against the same model before any tool logic runs.
+- **`is_error` is now set correctly**, per Anthropic's documented tool-error
+  convention, with an explicit, reasoned distinction: `resolve_vendor`'s
+  `ambiguous`/`not_found` and a genuine portal-reported save failure are NOT
+  tool-call errors (the tool executed correctly and is truthfully reporting a
+  domain outcome the model must reason about) -- but a Pydantic validation
+  failure, an unknown tool name, or a controller veto (duplicate,
+  vendor-mismatch, retry-cap) ARE.
+- **`finish()`'s status is now actually enforced** against its five-value
+  enum (previously an invalid status like `"done"` was silently accepted).
+- **Page-derived data sanitization gap closed**: `_sanitize()` was applied to
+  the vendor list and status text but NOT to `select_vendor`'s returned
+  address or `read_drafts()`'s returned records -- both are now recursively
+  sanitized (`portal_client._sanitize_value`).
+- **Dead code removed**: an unused `snapshot()` method.
+- **Server-lifecycle code deduplicated** between `run.py` and
+  `tests/conftest.py` into `server_utils.py` (previously two near-identical
+  copies -- a real divergence risk).
+- **Run-level cost/latency rollup** added to `run-report.json`/`.md`
+  (`run.py:_aggregate_usage`) -- previously only per-step usage existed, with
+  nothing summing "what did this run actually cost."
+- Explicitly **rejected as inappropriate for this scope** (recorded, not
+  silently skipped): a dedicated secrets manager/key-rotation schedule, a CI
+  workflow (the test suite depends on a sibling directory path not vendored
+  into this repo), a committed mypy config (mypy was run once locally and
+  real issues it found were fixed, but not wired up as a shippable gate),
+  and role-based Playwright locators (this fixture's ids are already stable,
+  descriptive, and fully within the candidate's control -- switching would
+  add indirection for a problem this specific page doesn't have).
+- Also found and fixed: one subagent in this review round ran `cat .env`
+  during its own investigation, which materializes the real API key into
+  that subagent's local transcript file. Flagging this transparently rather
+  than hiding it; the key should be treated as exposed and rotated out of
+  caution, even though the transcript never left the local machine.
 
 Two further crash-safety fixes from this pass, not caught by tests (reasoned
 through manually, since they only matter under an actual crash mid-run, which

@@ -17,9 +17,10 @@ import random
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from anthropic import Anthropic, APIStatusError, RateLimitError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from portal_client import PortalClient
 
@@ -85,77 +86,104 @@ Important operating rules:
   more than once.
 """
 
-TOOLS = [
-    {
-        "name": "list_vendors",
-        "description": "List all vendors known to the portal (vendor_id and name).",
-        "input_schema": {"type": "object", "properties": {}},
-    },
-    {
-        "name": "resolve_vendor",
-        "description": (
-            "Resolve a vendor by exact ID or by name/partial name. Reports what "
-            "was found -- a single match, multiple ambiguous matches, or no "
-            "match. Does not itself decide what you should do about it."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "vendor_id_or_name": {"type": "string"},
-            },
-            "required": ["vendor_id_or_name"],
-        },
-    },
-    {
-        "name": "check_existing_draft",
-        "description": "Check whether a draft already exists for a given request_id.",
-        "input_schema": {
-            "type": "object",
-            "properties": {"request_id": {"type": "string"}},
-            "required": ["request_id"],
-        },
-    },
-    {
-        "name": "attempt_save",
-        "description": (
-            "Attempt to save an address-update draft. Validates required fields "
-            "first and reports any problem instead of deciding for you. May be "
-            "called at most twice per request (one retry)."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "request_id": {"type": "string"},
-                "vendor_id": {"type": "string"},
-                "line1": {"type": "string"},
-                "city": {"type": "string"},
-                "postal_code": {"type": "string"},
-                "country": {"type": "string"},
-            },
-            "required": ["request_id", "vendor_id", "line1", "city", "postal_code", "country"],
-        },
-    },
-    {
-        "name": "read_drafts",
-        "description": "Read all currently saved drafts, to verify a save succeeded.",
-        "input_schema": {"type": "object", "properties": {}},
-    },
-    {
-        "name": "finish",
-        "description": "End processing of this request with a final status.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string",
-                    "enum": ["draft", "needs-information", "unresolved", "duplicate", "failed"],
-                },
-                "reason": {"type": "string"},
-            },
-            "required": ["status", "reason"],
-        },
-    },
-]
+# --- Tool input schemas: Pydantic models are the SINGLE SOURCE OF TRUTH.
+# The JSON schema sent to Claude (TOOLS, below) is generated FROM these
+# models rather than hand-duplicated, so the two can never silently drift
+# apart. Every tool_use the model sends is also validated against the
+# matching model before _execute_tool touches anything (see run_request) --
+# the provider's schema hint is not a guarantee, only a strong suggestion;
+# production code must still enforce it deterministically on the way in.
+
+
+class _StrictModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class ListVendorsInput(_StrictModel):
+    pass
+
+
+class ResolveVendorInput(_StrictModel):
+    vendor_id_or_name: str = Field(min_length=1)
+
+
+class CheckExistingDraftInput(_StrictModel):
+    request_id: str = Field(min_length=1)
+
+
+class AttemptSaveInput(_StrictModel):
+    request_id: str = Field(min_length=1)
+    vendor_id: str = Field(min_length=1)
+    line1: str
+    city: str
+    postal_code: str
+    country: str
+
+
+class ReadDraftsInput(_StrictModel):
+    pass
+
+
+FinishStatus = Literal["draft", "needs-information", "unresolved", "duplicate", "failed"]
+
+
+class FinishInput(_StrictModel):
+    status: FinishStatus
+    reason: str = Field(min_length=1)
+
+
+TOOL_INPUT_MODELS: dict[str, type[BaseModel]] = {
+    "list_vendors": ListVendorsInput,
+    "resolve_vendor": ResolveVendorInput,
+    "check_existing_draft": CheckExistingDraftInput,
+    "attempt_save": AttemptSaveInput,
+    "read_drafts": ReadDraftsInput,
+    "finish": FinishInput,
+}
+
+TOOL_DESCRIPTIONS = {
+    "list_vendors": "List all vendors known to the portal (vendor_id and name).",
+    "resolve_vendor": (
+        "Resolve a vendor by exact ID or by name/partial name. Reports what "
+        "was found -- a single match, multiple ambiguous matches, or no "
+        "match. Does not itself decide what you should do about it."
+    ),
+    "check_existing_draft": "Check whether a draft already exists for a given request_id.",
+    "attempt_save": (
+        "Attempt to save an address-update draft. Validates required fields "
+        "first and reports any problem instead of deciding for you. May be "
+        "called at most twice per request (one retry)."
+    ),
+    "read_drafts": "Read all currently saved drafts, to verify a save succeeded.",
+    "finish": "End processing of this request with a final status.",
+}
+
+
+def _schema_from_model(model: type[BaseModel]) -> dict:
+    """Anthropic's tool input_schema wants a plain JSON-Schema object -- no
+    top-level $defs/title/additionalProperties noise that Pydantic's raw
+    model_json_schema() includes by default."""
+    schema = model.model_json_schema()
+    schema.pop("title", None)
+    schema.pop("$defs", None)
+    schema.pop("additionalProperties", None)
+    for prop in schema.get("properties", {}).values():
+        prop.pop("title", None)
+    return schema
+
+
+def _build_tools() -> list[dict]:
+    return [
+        {
+            "name": name,
+            "description": TOOL_DESCRIPTIONS[name],
+            "input_schema": _schema_from_model(model),
+        }
+        for name, model in TOOL_INPUT_MODELS.items()
+    ]
+
+
+TOOLS = _build_tools()
 
 
 def _create_with_retry(client: Anthropic, **kwargs):
@@ -167,7 +195,7 @@ def _create_with_retry(client: Anthropic, **kwargs):
     resilience for a *transient API hiccup*, and conflating the two would
     make the business logic depend on network conditions.
     """
-    last_exc = None
+    last_exc: Exception = RuntimeError("unreachable: API_MAX_RETRIES must be >= 1")
     for attempt in range(API_MAX_RETRIES):
         try:
             return client.messages.create(**kwargs)
@@ -204,6 +232,7 @@ class RequestOutcome:
     had_failure: bool
     new_drafts: int
     transcript_path: str
+    total_usage: dict
 
 
 @dataclass
@@ -222,6 +251,12 @@ class _ControllerState:
     # The vendor_id resolved via resolve_vendor for THIS request, so a save
     # can't silently target a different vendor than what was looked up.
     resolved_vendor_id: Optional[str] = None
+    # Set by _execute_tool's "finish" branch only after Pydantic validation
+    # has already guaranteed `status` is one of FinishStatus's literal
+    # values -- run_request no longer reads these off the raw, unvalidated
+    # block.input itself.
+    final_status: Optional[str] = None
+    final_reason: Optional[str] = None
 
 
 def _resolve_vendor(client: PortalClient, vendor_id_or_name: str) -> dict:
@@ -246,33 +281,59 @@ def _missing_fields(line1: str, city: str, postal_code: str, country: str) -> li
     return [k for k, v in values.items() if not v or not v.strip()]
 
 
+@dataclass
+class ToolExecutionResult:
+    payload: dict
+    is_error: bool = False
+
+
 def _execute_tool(
     name: str,
     tool_input: dict,
     client: PortalClient,
     state: _ControllerState,
-) -> dict:
+) -> ToolExecutionResult:
+    # Deterministic gate #1: the provider's JSON-schema hint is not a
+    # guarantee. A model can still send a missing/extra/wrong-typed field;
+    # validate against the same Pydantic model the schema was generated
+    # from before any tool logic runs, so a malformed call degrades into a
+    # correctable error instead of a bare KeyError/TypeError crashing the
+    # whole request.
+    model_cls = TOOL_INPUT_MODELS.get(name)
+    if model_cls is None:
+        # The model invented a tool name outside TOOLS -- recoverable, not fatal.
+        return ToolExecutionResult({"error": f"Unknown tool {name!r}; use only the tools provided."}, is_error=True)
+
+    try:
+        validated = model_cls.model_validate(tool_input)
+    except ValidationError as e:
+        return ToolExecutionResult(
+            {"error": "Invalid tool input.", "details": e.errors(include_url=False, include_context=False)},
+            is_error=True,
+        )
+
     if name == "list_vendors":
-        return {"vendors": client.list_vendors()}
+        return ToolExecutionResult({"vendors": client.list_vendors()})
 
     if name == "resolve_vendor":
-        result = _resolve_vendor(client, tool_input["vendor_id_or_name"])
+        result = _resolve_vendor(client, validated.vendor_id_or_name)
         if "match" in result:
             state.resolved_vendor_id = result["match"]["vendor_id"]
-        return result
+        # ambiguous/not_found are legitimate domain outcomes the model must
+        # reason about (the system prompt tells it to expect and act on
+        # them) -- not tool-call errors, so is_error stays False.
+        return ToolExecutionResult(result)
 
     if name == "check_existing_draft":
         drafts = client.read_drafts()
-        existing = [d for d in drafts if d["request_id"] == tool_input["request_id"]]
-        return {"exists": bool(existing), "draft": existing[0] if existing else None}
+        existing = [d for d in drafts if d["request_id"] == validated.request_id]
+        return ToolExecutionResult({"exists": bool(existing), "draft": existing[0] if existing else None})
 
     if name == "read_drafts":
-        return {"drafts": client.read_drafts()}
+        return ToolExecutionResult({"drafts": client.read_drafts()})
 
     if name == "attempt_save":
-        missing = _missing_fields(
-            tool_input["line1"], tool_input["city"], tool_input["postal_code"], tool_input["country"]
-        )
+        missing = _missing_fields(validated.line1, validated.city, validated.postal_code, validated.country)
         if missing:
             key = frozenset(missing)
             # Hard veto: refusing to re-submit with ANY missing-fields
@@ -281,12 +342,14 @@ def _execute_tool(
             # different incomplete submissions must still be capped, not
             # only a verbatim immediate repeat.
             if key in state.seen_missing_fields:
-                return {
-                    "vetoed": True,
-                    "reason": "Already reported a missing-fields problem for this request; call finish instead of retrying.",
-                }
+                return ToolExecutionResult(
+                    {"reason": "Already reported a missing-fields problem for this request; call finish instead of retrying."},
+                    is_error=True,
+                )
             state.seen_missing_fields.add(key)
-            return {"validation_error": True, "missing_fields": missing}
+            # Caused by the model's own incomplete call -- an error the
+            # model must correct, per Anthropic's tool-error convention.
+            return ToolExecutionResult({"missing_fields": missing}, is_error=True)
 
         # Hard veto: this request_id already has a saved draft. Enforced in
         # the controller itself (not only via the check_existing_draft tool
@@ -294,66 +357,71 @@ def _execute_tool(
         # does not depend on the model's own discipline -- domain rule 3
         # ("the same request ID must not produce duplicate drafts") is a
         # hard invariant, not a suggestion.
-        existing = [d for d in client.read_drafts() if d["request_id"] == tool_input["request_id"]]
+        existing = [d for d in client.read_drafts() if d["request_id"] == validated.request_id]
         if existing:
-            return {
-                "vetoed": True,
-                "reason": "A draft for this request_id already exists; call finish with status duplicate.",
-                "existing_draft": existing[0],
-            }
+            return ToolExecutionResult(
+                {
+                    "reason": "A draft for this request_id already exists; call finish with status duplicate.",
+                    "existing_draft": existing[0],
+                },
+                is_error=True,
+            )
 
         if state.save_attempts >= MAX_SAVE_ATTEMPTS:
-            return {
-                "vetoed": True,
-                "reason": "Maximum save attempts (1 retry) already used. Call finish.",
-            }
+            return ToolExecutionResult(
+                {"reason": "Maximum save attempts (1 retry) already used. Call finish."}, is_error=True
+            )
 
         # Hard veto: the vendor_id being saved must be the one this request
         # actually resolved via resolve_vendor -- a model can't look up
         # vendor A and then save against vendor B.
-        if state.resolved_vendor_id is not None and tool_input["vendor_id"] != state.resolved_vendor_id:
-            return {
-                "vetoed": True,
-                "reason": (
-                    f"vendor_id {tool_input['vendor_id']!r} does not match the vendor "
-                    f"{state.resolved_vendor_id!r} resolved earlier for this request."
-                ),
-            }
+        if state.resolved_vendor_id is not None and validated.vendor_id != state.resolved_vendor_id:
+            return ToolExecutionResult(
+                {
+                    "reason": (
+                        f"vendor_id {validated.vendor_id!r} does not match the vendor "
+                        f"{state.resolved_vendor_id!r} resolved earlier for this request."
+                    )
+                },
+                is_error=True,
+            )
 
         # Controller only resolves vendor_id -> select on the page; it does not
         # decide ambiguity here (that already happened via resolve_vendor).
-        addr = client.select_vendor(tool_input["vendor_id"])
+        addr = client.select_vendor(validated.vendor_id)
         if addr is None:
-            return {"vetoed": True, "reason": "vendor_id does not exist; call finish(unresolved)."}
+            return ToolExecutionResult(
+                {"reason": "vendor_id does not exist; call finish(unresolved)."}, is_error=True
+            )
 
         if state.resolved_vendor_id is None:
             # Model skipped resolve_vendor entirely but happened to pass a
             # valid id -- record it now so a later attempt can't switch
             # vendors mid-request either.
-            state.resolved_vendor_id = tool_input["vendor_id"]
+            state.resolved_vendor_id = validated.vendor_id
 
         state.save_attempts += 1
         status_text = client.fill_and_submit(
-            tool_input["request_id"],
-            tool_input["line1"],
-            tool_input["city"],
-            tool_input["postal_code"],
-            tool_input["country"],
+            validated.request_id, validated.line1, validated.city, validated.postal_code, validated.country
         )
         failed = "failure" in status_text.lower() or "already exists" in status_text.lower()
         if "failure" in status_text.lower():
             state.had_failure = True
-        return {
-            "status_text": status_text,
-            "attempt_number": state.save_attempts,
-            "looked_like_failure": failed,
-        }
+        # The tool call itself succeeded -- it correctly executed a save
+        # attempt and is truthfully reporting the portal's business-level
+        # outcome. A business failure (simulated save failure) is NOT a
+        # tool-call error: is_error stays False either way.
+        return ToolExecutionResult(
+            {"status_text": status_text, "attempt_number": state.save_attempts, "looked_like_failure": failed}
+        )
 
     if name == "finish":
         state.finished = True
-        return {"acknowledged": True}
+        state.final_status = validated.status
+        state.final_reason = validated.reason
+        return ToolExecutionResult({"acknowledged": True})
 
-    raise ValueError(f"Unknown tool: {name}")
+    raise AssertionError(f"TOOL_INPUT_MODELS and _execute_tool are out of sync for tool {name!r}")
 
 
 def run_request(
@@ -370,11 +438,9 @@ def run_request(
         f"New change request:\n{json.dumps(request, indent=2)}\n\n"
         "Decide what to do, step by step, using the tools available."
     )
-    messages = [{"role": "user", "content": user_content}]
+    messages: list[dict] = [{"role": "user", "content": user_content}]
 
-    transcript = []
-    final_status = None
-    final_reason = None
+    transcript: list[dict] = []
     transcript_path = logs_dir / f"{log_label}.json"
 
     def _flush_transcript():
@@ -424,18 +490,23 @@ def run_request(
         for block in tool_uses:
             result = _execute_tool(block.name, block.input, portal, state)
             transcript.append(
-                {"step": step, "role": "tool_result", "tool": block.name, "input": block.input, "output": result}
+                {
+                    "step": step,
+                    "role": "tool_result",
+                    "tool": block.name,
+                    "input": block.input,
+                    "output": result.payload,
+                    "is_error": result.is_error,
+                }
             )
             tool_results.append(
                 {
                     "type": "tool_result",
                     "tool_use_id": block.id,
-                    "content": json.dumps(result),
+                    "content": json.dumps(result.payload),
+                    "is_error": result.is_error,
                 }
             )
-            if block.name == "finish":
-                final_status = block.input.get("status", "failed")
-                final_reason = block.input.get("reason", "")
 
         _flush_transcript()
         messages.append({"role": "user", "content": tool_results})
@@ -446,6 +517,8 @@ def run_request(
     drafts_after = portal.read_drafts()
     new_drafts = len(drafts_after) - len(state.drafts_before)
 
+    final_status = state.final_status
+    final_reason = state.final_reason
     if final_status is None:
         # Step budget exhausted without an explicit finish() call. Don't
         # blindly report "failed" -- check what the portal actually holds,
@@ -465,7 +538,20 @@ def run_request(
             final_status = "failed"
             final_reason = f"Step limit ({MAX_STEPS}) reached without calling finish() and no draft was saved."
 
+    # final_reason is only still None here if state.final_status were set
+    # without state.final_reason, which _execute_tool's "finish" branch
+    # never does (both are always set together from the same validated
+    # FinishInput) -- this assert documents and enforces that invariant.
+    assert final_reason is not None
     _flush_transcript()
+
+    total_usage = {"input_tokens": 0, "output_tokens": 0, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}
+    for entry in transcript:
+        usage = entry.get("usage")
+        if not usage:
+            continue
+        for key in total_usage:
+            total_usage[key] += usage.get(key, 0) or 0
 
     return RequestOutcome(
         request_id=log_label,
@@ -475,6 +561,7 @@ def run_request(
         had_failure=state.had_failure,
         new_drafts=new_drafts,
         transcript_path=str(transcript_path),
+        total_usage=total_usage,
     )
 
 
