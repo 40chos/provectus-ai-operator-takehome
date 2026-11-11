@@ -91,7 +91,7 @@ response header, and that `MAX_STEPS` exhaustion unconditionally reported
 earlier in the same run -- both fixed (see `agent.py`).
 
 To make these fixes (and the earlier caching/retry additions) verifiable
-without re-spending API budget, a 45-test `pytest` suite was added under
+without re-spending API budget, a 53-test `pytest` suite was added under
 `tests/`:
 - `test_portal_client.py` / `test_controller.py` drive the real local portal
   through a real headless browser (Playwright is free; only the Anthropic
@@ -163,6 +163,27 @@ an exception mid-loop doesn't lose the reasoning trace up to that point; and
 `run.py` now catches a per-request exception, records it as `status: "error"`,
 and continues with the remaining requests, instead of one bad request
 discarding every result already earned in the same batch.
+
+## Model choice and hard cost cap
+
+Kept `claude-sonnet-5` rather than switching to a cheaper model (e.g. Haiku)
+for cost reasons: current published agentic-benchmark scores show a large
+quality gap on exactly this kind of workload (ambiguity detection,
+business-rule judgment) -- roughly 64 vs 24 on agentic tasks -- and that
+judgment quality is the actual thing being assessed here. Cutting cost by
+risking wrong decisions would be a false economy, especially since the
+projected run cost is well under budget either way.
+
+A deterministic, code-enforced hard cost cap was added instead
+(`cost_tracker.py`): every real API response's usage is priced against
+current published Sonnet 5 rates and summed across the whole run (not
+per-request). `run_request` checks the running total **before** every
+call and raises `BudgetExceeded` to stop the entire batch if continuing
+could cross **$0.20** -- not an estimate made in advance, an actual running
+total checked live, with a safety margin sized to the worst case a single
+remaining call could cost. Covered by `tests/test_cost_tracker.py` and two
+tests in `test_agent_loop.py` proving the cap fires before an API call is
+even made, and that real usage is correctly added to the shared tracker.
 
 ## Reproduce or replay
 
