@@ -60,6 +60,52 @@ report and tries to save anyway. Verified by running `seed_extended.json`'s X3a/
 pair: X3a creates the draft, X3b correctly reports `status: duplicate`,
 `new_drafts: 0` (see `extended/run-report.json` and `logs_extended/X3b.json`).
 
+## Zero-cost verification (added in a later pass)
+
+A second, independent code-review pass (a separate Claude instance, adversarial,
+no shared context with the implementation) was run specifically to find issues
+*without* spending any more Anthropic budget on live runs. It found three real
+correctness bugs that the first paid run's 10/10 pass had not exercised:
+
+1. **Controller-level duplicate veto was missing.** `attempt_save` relied on
+   the model calling `check_existing_draft` first and/or the portal's own
+   "already exists" rejection -- nothing in the controller itself blocked a
+   second save for a request_id that already has a draft. Fixed: `attempt_save`
+   now checks `read_drafts()` for the request_id before ever touching the
+   browser, independent of what the model does.
+2. **A save could target a different vendor than the one actually resolved**
+   for the request -- nothing tied `attempt_save`'s `vendor_id` argument to
+   whatever `resolve_vendor` had returned earlier in the same request. Fixed:
+   `_ControllerState.resolved_vendor_id` is recorded and `attempt_save` is
+   vetoed if the vendor_id doesn't match it.
+3. **The missing-fields veto only compared against the immediately previous
+   attempt**, so a model alternating between two different incomplete
+   submissions (e.g. missing country, then missing city, then missing country
+   again) would never trip it. Fixed: the controller now tracks the *set* of
+   every missing-fields combination already reported for the request.
+
+It also caught that the transport-retry's `Retry-After` handling read a
+non-existent SDK attribute (`e.retry_after`) rather than the actual HTTP
+response header, and that `MAX_STEPS` exhaustion unconditionally reported
+`status: "failed"` even when a draft had genuinely been saved and verified
+earlier in the same run -- both fixed (see `agent.py`).
+
+To make these fixes (and the earlier caching/retry additions) verifiable
+without re-spending API budget, a 33-test `pytest` suite was added under
+`tests/`:
+- `test_portal_client.py` / `test_controller.py` drive the real local portal
+  through a real headless browser (Playwright is free; only the Anthropic
+  call costs money) to validate every controller invariant above
+  deterministically.
+- `test_agent_loop.py` uses a small scripted fake Anthropic client (no
+  network) to prove two things that would otherwise only be claims: that
+  `cache_control`/`system`/`tools` are actually present in every outgoing
+  call, and that the `MAX_STEPS` exhaustion path reports status honestly
+  based on actual portal state rather than a blind default.
+
+Run `pytest tests/ -v` from `submission/` -- zero Anthropic API calls, zero
+cost, safe to run as many times as useful.
+
 ## Reproduce or replay
 
 1. From `submission/`, with a virtualenv containing `requirements.txt` installed and

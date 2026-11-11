@@ -19,7 +19,16 @@ python -m playwright install chromium
 cp .env.example .env   # then fill in MODEL_API_KEY with your own Anthropic key
 ```
 
-Run the original 5 seed requests:
+Run the offline test suite first (zero Anthropic API calls, zero cost --
+Playwright/browser usage is free, only the Anthropic call costs money and
+these tests never make one):
+
+```bash
+pip install pytest
+pytest tests/ -v
+```
+
+Run the original 5 seed requests (this does call the Anthropic API):
 
 ```bash
 python run.py

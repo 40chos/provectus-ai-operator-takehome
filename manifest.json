@@ -15,7 +15,7 @@
     "application_models_and_parameters": {
       "status": "complete",
       "files": ["agent.py"],
-      "notes": "The application's own model integration (not the dev-time assistant): Anthropic Python SDK 2.8.0, model id 'claude-sonnet-5', max_tokens=1024, tool_choice default (model decides), system prompt in agent.py:SYSTEM_PROMPT. This SDK version's messages.create() does not expose a temperature/top_p parameter (checked via inspect.signature at build time) -- API default behavior used, not a conscious choice to omit it."
+      "notes": "The application's own model integration (not the dev-time assistant): Anthropic Python SDK 2.8.0, model id 'claude-sonnet-5', max_tokens=1024, tool_choice default (model decides), system prompt in agent.py:SYSTEM_PROMPT. This SDK version's messages.create() does not expose a temperature/top_p parameter (checked via inspect.signature at build time) -- API default behavior used, not a conscious choice to omit it. Production hardening added after the initial pass: (1) top-level cache_control=ephemeral on every call -- verified (not assumed) correct against this SDK's own docstring ('automatically applies a cache_control marker to the last cacheable block') and covered by tests/test_agent_loop.py::test_cache_control_and_static_prompt_are_sent_on_every_call, which asserts the exact kwarg is sent, without needing a live API key; (2) transport-layer retry/backoff for 429/529 in agent.py:_create_with_retry, separate from the business-level MAX_SAVE_ATTEMPTS cap, with Retry-After read from the raw response header (not a nonexistent SDK attribute); (3) per-step usage/latency logged into each transcript. A first version of the Retry-After handling read a non-existent `e.retry_after` attribute -- caught in a second code-review pass, corrected to parse `e.response.headers['retry-after']`."
     },
     "skills": {
       "status": "not-used",
@@ -46,6 +46,11 @@
       "status": "complete",
       "files": [".env.example"],
       "notes": "Environment variable MODEL_API_KEY holds the Anthropic API key, supplied by the candidate (not provided by Provectus, per recruiter confirmation). Default Claude Code permission settings used, nothing project-specific configured."
+    },
+    "testing": {
+      "status": "complete",
+      "files": ["tests/conftest.py", "tests/test_portal_client.py", "tests/test_controller.py", "tests/test_agent_loop.py"],
+      "notes": "33 pytest tests, all runnable at zero API cost: tests/test_portal_client.py and tests/test_controller.py drive the real local portal via a real headless browser (free) to validate every controller invariant (ambiguity detection, field validation, retry cap, vendor-lock, controller-level duplicate veto, sanitization) without calling Anthropic at all. tests/test_agent_loop.py uses a scripted fake Anthropic client (no network) to validate the tool-use loop's own control flow: that cache_control/system/tools are actually sent on every call, and that MAX_STEPS exhaustion is reported honestly (status reflects whether a draft actually exists, not a blind 'failed'). This category isn't in the original template -- added because several of the production-hardening claims below are only credible if something other than a live paid run verifies them."
     }
   },
   "configuration_records": [

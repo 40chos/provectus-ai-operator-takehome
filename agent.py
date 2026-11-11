@@ -173,7 +173,17 @@ def _create_with_retry(client: Anthropic, **kwargs):
             return client.messages.create(**kwargs)
         except RateLimitError as e:
             last_exc = e
-            retry_after = getattr(e, "retry_after", None)
+            # The SDK does not expose a parsed `retry_after` attribute; the
+            # Retry-After header must be read off the raw HTTP response.
+            retry_after = None
+            response = getattr(e, "response", None)
+            if response is not None:
+                header = response.headers.get("retry-after")
+                if header is not None:
+                    try:
+                        retry_after = float(header)
+                    except ValueError:
+                        retry_after = None
             delay = retry_after if retry_after else min(API_BACKOFF_BASE_S * (2 ** attempt), API_BACKOFF_CAP_S)
         except APIStatusError as e:
             if e.status_code not in (529, 503):
@@ -203,7 +213,15 @@ class _ControllerState:
     had_failure: bool = False
     finished: bool = False
     drafts_before: list = field(default_factory=list)
-    last_missing_fields: Optional[frozenset] = None
+    # Cumulative set of every missing-fields combination already reported,
+    # not just the most recent one -- a model alternating between two
+    # different incomplete submissions (e.g. missing country, then missing
+    # city, then missing country again) must still be caught, not just an
+    # immediate verbatim repeat.
+    seen_missing_fields: set = field(default_factory=set)
+    # The vendor_id resolved via resolve_vendor for THIS request, so a save
+    # can't silently target a different vendor than what was looked up.
+    resolved_vendor_id: Optional[str] = None
 
 
 def _resolve_vendor(client: PortalClient, vendor_id_or_name: str) -> dict:
@@ -238,7 +256,10 @@ def _execute_tool(
         return {"vendors": client.list_vendors()}
 
     if name == "resolve_vendor":
-        return _resolve_vendor(client, tool_input["vendor_id_or_name"])
+        result = _resolve_vendor(client, tool_input["vendor_id_or_name"])
+        if "match" in result:
+            state.resolved_vendor_id = result["match"]["vendor_id"]
+        return result
 
     if name == "check_existing_draft":
         drafts = client.read_drafts()
@@ -253,15 +274,33 @@ def _execute_tool(
             tool_input["line1"], tool_input["city"], tool_input["postal_code"], tool_input["country"]
         )
         if missing:
-            # Hard veto: refusing to re-submit with the SAME missing fields twice
-            # in a row (model looping instead of asking for clarification).
-            if state.last_missing_fields == frozenset(missing):
+            key = frozenset(missing)
+            # Hard veto: refusing to re-submit with ANY missing-fields
+            # combination already reported this request (not just the
+            # immediately previous one) -- a model alternating between two
+            # different incomplete submissions must still be capped, not
+            # only a verbatim immediate repeat.
+            if key in state.seen_missing_fields:
                 return {
                     "vetoed": True,
-                    "reason": "Already reported these fields missing; call finish instead of retrying.",
+                    "reason": "Already reported a missing-fields problem for this request; call finish instead of retrying.",
                 }
-            state.last_missing_fields = frozenset(missing)
+            state.seen_missing_fields.add(key)
             return {"validation_error": True, "missing_fields": missing}
+
+        # Hard veto: this request_id already has a saved draft. Enforced in
+        # the controller itself (not only via the check_existing_draft tool
+        # the model is instructed to call first) so duplicate protection
+        # does not depend on the model's own discipline -- domain rule 3
+        # ("the same request ID must not produce duplicate drafts") is a
+        # hard invariant, not a suggestion.
+        existing = [d for d in client.read_drafts() if d["request_id"] == tool_input["request_id"]]
+        if existing:
+            return {
+                "vetoed": True,
+                "reason": "A draft for this request_id already exists; call finish with status duplicate.",
+                "existing_draft": existing[0],
+            }
 
         if state.save_attempts >= MAX_SAVE_ATTEMPTS:
             return {
@@ -269,11 +308,29 @@ def _execute_tool(
                 "reason": "Maximum save attempts (1 retry) already used. Call finish.",
             }
 
+        # Hard veto: the vendor_id being saved must be the one this request
+        # actually resolved via resolve_vendor -- a model can't look up
+        # vendor A and then save against vendor B.
+        if state.resolved_vendor_id is not None and tool_input["vendor_id"] != state.resolved_vendor_id:
+            return {
+                "vetoed": True,
+                "reason": (
+                    f"vendor_id {tool_input['vendor_id']!r} does not match the vendor "
+                    f"{state.resolved_vendor_id!r} resolved earlier for this request."
+                ),
+            }
+
         # Controller only resolves vendor_id -> select on the page; it does not
         # decide ambiguity here (that already happened via resolve_vendor).
         addr = client.select_vendor(tool_input["vendor_id"])
         if addr is None:
             return {"vetoed": True, "reason": "vendor_id does not exist; call finish(unresolved)."}
+
+        if state.resolved_vendor_id is None:
+            # Model skipped resolve_vendor entirely but happened to pass a
+            # valid id -- record it now so a later attempt can't switch
+            # vendors mid-request either.
+            state.resolved_vendor_id = tool_input["vendor_id"]
 
         state.save_attempts += 1
         status_text = client.fill_and_submit(
@@ -316,8 +373,8 @@ def run_request(
     messages = [{"role": "user", "content": user_content}]
 
     transcript = []
-    final_status = "failed"
-    final_reason = "step limit reached without calling finish"
+    final_status = None
+    final_reason = None
 
     for step in range(MAX_STEPS):
         t0 = time.monotonic()
@@ -378,6 +435,25 @@ def run_request(
 
     drafts_after = portal.read_drafts()
     new_drafts = len(drafts_after) - len(state.drafts_before)
+
+    if final_status is None:
+        # Step budget exhausted without an explicit finish() call. Don't
+        # blindly report "failed" -- check what the portal actually holds,
+        # since a save can genuinely have succeeded and been verified in an
+        # earlier step, with the model simply not reaching finish() in time
+        # (e.g. it spent its last step re-verifying). Scoring on a false
+        # "failed" when a correct draft exists would be worse than scoring
+        # on an honest "step-limit-reached" outcome that still reports the
+        # true new_drafts count.
+        if new_drafts > 0:
+            final_status = "draft"
+            final_reason = (
+                f"Step limit ({MAX_STEPS}) reached before the model called finish(), "
+                f"but {new_drafts} draft(s) were verified saved in the portal."
+            )
+        else:
+            final_status = "failed"
+            final_reason = f"Step limit ({MAX_STEPS}) reached without calling finish() and no draft was saved."
 
     transcript_path = logs_dir / f"{log_label}.json"
     transcript_path.write_text(json.dumps(transcript, indent=2))
