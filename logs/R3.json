@@ -1,0 +1,87 @@
+[
+  {
+    "step": 0,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "name": "resolve_vendor",
+        "input": {
+          "vendor_id_or_name": "V4"
+        },
+        "id": "toolu_018TvY1YaEebvvtHZpNKFV5A"
+      },
+      {
+        "type": "tool_use",
+        "name": "check_existing_draft",
+        "input": {
+          "request_id": "R3"
+        },
+        "id": "toolu_014MtvFnzv17EnHVFu5TYGQf"
+      }
+    ]
+  },
+  {
+    "step": 0,
+    "role": "tool_result",
+    "tool": "resolve_vendor",
+    "input": {
+      "vendor_id_or_name": "V4"
+    },
+    "output": {
+      "match": {
+        "vendor_id": "V4",
+        "name": "Maple Parts"
+      },
+      "original_address": {
+        "line1": "4 Example Road",
+        "city": "Sampleton",
+        "postal_code": "00400",
+        "country": "Exampleland"
+      }
+    }
+  },
+  {
+    "step": 0,
+    "role": "tool_result",
+    "tool": "check_existing_draft",
+    "input": {
+      "request_id": "R3"
+    },
+    "output": {
+      "exists": false,
+      "draft": null
+    }
+  },
+  {
+    "step": 1,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "The vendor (V4 \u2013 Maple Parts) resolves unambiguously and no draft yet exists for request R3. However, the requested address update has an empty `postal_code` field, which is a required field for any address change. Per the rules, I must not submit a save with an empty required field."
+      },
+      {
+        "type": "tool_use",
+        "name": "finish",
+        "input": {
+          "status": "needs-information",
+          "reason": "Request R3 for vendor V4 (Maple Parts) is missing a required field: postal_code is empty. Cannot save an address update with a blank required field. Please provide the postal code before resubmitting."
+        },
+        "id": "toolu_01GyiKdPju5eHUQyWPDKg54B"
+      }
+    ]
+  },
+  {
+    "step": 1,
+    "role": "tool_result",
+    "tool": "finish",
+    "input": {
+      "status": "needs-information",
+      "reason": "Request R3 for vendor V4 (Maple Parts) is missing a required field: postal_code is empty. Cannot save an address update with a blank required field. Please provide the postal code before resubmitting."
+    },
+    "output": {
+      "acknowledged": true
+    }
+  }
+]

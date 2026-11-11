@@ -1,0 +1,47 @@
+[
+  {
+    "request_id": "R1",
+    "status": "draft",
+    "reason": "Draft successfully created and verified for vendor V1 (Cedar Office) with the new address (42 Fiction Lane, Demo City, 00123, Exampleland). Save succeeded on first attempt; confirmed via read_drafts.",
+    "save_attempts": 1,
+    "had_failure": false,
+    "new_drafts": 1,
+    "transcript_path": "logs/R1.json"
+  },
+  {
+    "request_id": "R2",
+    "status": "needs-information",
+    "reason": "Vendor name 'Northstar Supplies' is ambiguous: matches both 'Northstar Supplies East' (V2) and 'Northstar Supplies West' (V3). Please provide the exact vendor ID to proceed. No changes have been made to either record.",
+    "save_attempts": 0,
+    "had_failure": false,
+    "new_drafts": 0,
+    "transcript_path": "logs/R2.json"
+  },
+  {
+    "request_id": "R3",
+    "status": "needs-information",
+    "reason": "Request R3 for vendor V4 (Maple Parts) is missing a required field: postal_code is empty. Cannot save an address update with a blank required field. Please provide the postal code before resubmitting.",
+    "save_attempts": 0,
+    "had_failure": false,
+    "new_drafts": 0,
+    "transcript_path": "logs/R3.json"
+  },
+  {
+    "request_id": "R4",
+    "status": "unresolved",
+    "reason": "Vendor ID 'V999' does not match any vendor known to the portal. Cannot proceed with address update for an unresolved vendor. Please verify the correct vendor ID and resubmit.",
+    "save_attempts": 0,
+    "had_failure": false,
+    "new_drafts": 0,
+    "transcript_path": "logs/R4.json"
+  },
+  {
+    "request_id": "R5",
+    "status": "draft",
+    "reason": "Vendor V6 (Birch Goods) resolved uniquely. First save attempt failed due to simulated failure; retried once and succeeded. Verified via read_drafts that R5 draft now exists with address: 42 Fiction Lane, Demo City, 00123, Exampleland. Original address was not overwritten (drafts are separate from vendor record).",
+    "save_attempts": 2,
+    "had_failure": true,
+    "new_drafts": 1,
+    "transcript_path": "logs/R5.json"
+  }
+]

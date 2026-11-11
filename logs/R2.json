@@ -1,0 +1,68 @@
+[
+  {
+    "step": 0,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "name": "resolve_vendor",
+        "input": {
+          "vendor_id_or_name": "Northstar Supplies"
+        },
+        "id": "toolu_01CYutBccZnutNJGGmSSFRBP"
+      }
+    ]
+  },
+  {
+    "step": 0,
+    "role": "tool_result",
+    "tool": "resolve_vendor",
+    "input": {
+      "vendor_id_or_name": "Northstar Supplies"
+    },
+    "output": {
+      "ambiguous": true,
+      "candidates": [
+        {
+          "vendor_id": "V2",
+          "name": "Northstar Supplies East"
+        },
+        {
+          "vendor_id": "V3",
+          "name": "Northstar Supplies West"
+        }
+      ]
+    }
+  },
+  {
+    "step": 1,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "This matches the documented worked example exactly: \"Northstar Supplies\" is ambiguous between \"Northstar Supplies East\" (V2) and \"Northstar Supplies West\" (V3). Per the rules, I must not guess \u2014 I need to ask for clarification and leave both records unchanged."
+      },
+      {
+        "type": "tool_use",
+        "name": "finish",
+        "input": {
+          "status": "needs-information",
+          "reason": "Vendor name 'Northstar Supplies' is ambiguous: matches both 'Northstar Supplies East' (V2) and 'Northstar Supplies West' (V3). Please provide the exact vendor ID to proceed. No changes have been made to either record."
+        },
+        "id": "toolu_018ThypmFkEamwrovi3HAfzs"
+      }
+    ]
+  },
+  {
+    "step": 1,
+    "role": "tool_result",
+    "tool": "finish",
+    "input": {
+      "status": "needs-information",
+      "reason": "Vendor name 'Northstar Supplies' is ambiguous: matches both 'Northstar Supplies East' (V2) and 'Northstar Supplies West' (V3). Please provide the exact vendor ID to proceed. No changes have been made to either record."
+    },
+    "output": {
+      "acknowledged": true
+    }
+  }
+]
