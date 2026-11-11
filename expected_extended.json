@@ -1,0 +1,33 @@
+[
+  {
+    "request_id": "X1",
+    "status": "draft",
+    "new_drafts": 1,
+    "_why": "Partial name 'Juniper' matches only Juniper Tools (V5) -- unambiguous, unlike R2's 'Northstar Supplies'."
+  },
+  {
+    "request_id": "X2",
+    "status": "needs-information",
+    "new_drafts": 0,
+    "_why": "country field is empty -- a required field per domain rule 2, same class of trap as R3's missing postal_code."
+  },
+  {
+    "request_id": "X3a",
+    "status": "draft",
+    "new_drafts": 1,
+    "_why": "Fresh request_id (DUP-1), no prior draft exists yet."
+  },
+  {
+    "request_id": "X3b",
+    "status": "duplicate",
+    "new_drafts": 0,
+    "_why": "Same request_id (DUP-1) as X3a, already has a draft -- domain rule 3: 'the same request ID must not produce duplicate drafts'. Must not create a second draft even though the submitted address differs from X3a's."
+  },
+  {
+    "request_id": "X4",
+    "status": "draft-after-one-retry-or-failed",
+    "max_new_drafts": 1,
+    "failure_must_be_visible": true,
+    "_why": "Independent fail-once scenario (different vendor/request from R5) confirming the fail-then-retry-then-verify behavior is repeatable. Same expected-result shape as R5 in the original seed."
+  }
+]

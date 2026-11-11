@@ -9,7 +9,7 @@
         "input": {
           "request_id": "R1"
         },
-        "id": "toolu_01ES2CgYqcDUJEE2WnEK2wTR"
+        "id": "toolu_01MHmSyardzmDx3aYB26woEX"
       },
       {
         "type": "tool_use",
@@ -17,7 +17,7 @@
         "input": {
           "vendor_id_or_name": "V1"
         },
-        "id": "toolu_012PduE8Jer5gs8mstaUHoSD"
+        "id": "toolu_01YHMhKrEDgPVDqk7fJWMfko"
       }
     ]
   },
@@ -59,7 +59,7 @@
     "content": [
       {
         "type": "text",
-        "text": "All required fields are present and vendor resolved unambiguously. Proceeding to save."
+        "text": "All fields are present and vendor resolved uniquely. Proceeding to save."
       },
       {
         "type": "tool_use",
@@ -72,7 +72,7 @@
           "postal_code": "00123",
           "country": "Exampleland"
         },
-        "id": "toolu_01Y4sZBEwTs2SvY35R21ys8A"
+        "id": "toolu_01UQmDUtyVWPxh6vZSFwgZHe"
       }
     ]
   },
@@ -99,10 +99,14 @@
     "role": "assistant",
     "content": [
       {
+        "type": "text",
+        "text": "Save succeeded on the first attempt. Now verifying by reading drafts."
+      },
+      {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_012GCYSF15po2kgwQH2MHDm5"
+        "id": "toolu_01STLaYYMJPr5C2ts243VqzQ"
       }
     ]
   },
@@ -132,16 +136,16 @@
     "content": [
       {
         "type": "text",
-        "text": "The draft for request R1 has been successfully saved and verified: vendor V1 (Cedar Office) now has a draft address update to \"42 Fiction Lane, Demo City, 00123, Exampleland\". The original address remains unchanged in the vendor record, and only this one draft exists for R1."
+        "text": "The draft for R1 is confirmed saved correctly with the new address for vendor V1 (Cedar Office), without altering the vendor name/ID or the original address record."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Draft successfully created and verified for vendor V1 (Cedar Office) with the new address (42 Fiction Lane, Demo City, 00123, Exampleland). Save succeeded on first attempt; confirmed via read_drafts."
+          "reason": "Draft successfully created and verified for request R1: vendor V1 (Cedar Office) address updated to 42 Fiction Lane, Demo City, 00123, Exampleland. Save succeeded on first attempt; read_drafts confirms the draft matches the requested address exactly."
         },
-        "id": "toolu_01Hbi7B92sWuYM3UTEeB9qqY"
+        "id": "toolu_018sDWVY8SvVP8BFDcNh7ftx"
       }
     ]
   },
@@ -151,7 +155,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Draft successfully created and verified for vendor V1 (Cedar Office) with the new address (42 Fiction Lane, Demo City, 00123, Exampleland). Save succeeded on first attempt; confirmed via read_drafts."
+      "reason": "Draft successfully created and verified for request R1: vendor V1 (Cedar Office) address updated to 42 Fiction Lane, Demo City, 00123, Exampleland. Save succeeded on first attempt; read_drafts confirms the draft matches the requested address exactly."
     },
     "output": {
       "acknowledged": true

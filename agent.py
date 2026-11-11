@@ -56,6 +56,9 @@ Important operating rules:
 - If a save attempt fails, you may retry exactly once after verifying what
   happened. If the retry also fails, call finish with status "failed".
 - After any successful save, verify by reading drafts before calling finish.
+- If check_existing_draft reports a draft already exists for this request_id,
+  do not attempt to save again -- call finish with status "duplicate" and
+  leave the existing draft untouched.
 - Always end by calling the "finish" tool exactly once. Do not call finish
   more than once.
 """
@@ -254,6 +257,7 @@ def run_request(
     logs_dir: Path,
 ) -> RequestOutcome:
     request_id = request["request_id"]
+    log_label = request.get("label", request_id)
     state = _ControllerState(request_id=request_id, drafts_before=portal.read_drafts())
 
     user_content = (
@@ -314,11 +318,11 @@ def run_request(
     drafts_after = portal.read_drafts()
     new_drafts = len(drafts_after) - len(state.drafts_before)
 
-    transcript_path = logs_dir / f"{request_id}.json"
+    transcript_path = logs_dir / f"{log_label}.json"
     transcript_path.write_text(json.dumps(transcript, indent=2))
 
     return RequestOutcome(
-        request_id=request_id,
+        request_id=log_label,
         status=final_status,
         reason=final_reason,
         save_attempts=state.save_attempts,

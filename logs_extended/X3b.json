@@ -1,0 +1,68 @@
+[
+  {
+    "step": 0,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "name": "check_existing_draft",
+        "input": {
+          "request_id": "DUP-1"
+        },
+        "id": "toolu_01UgJdCJ3kWSHpriFpW1361i"
+      }
+    ]
+  },
+  {
+    "step": 0,
+    "role": "tool_result",
+    "tool": "check_existing_draft",
+    "input": {
+      "request_id": "DUP-1"
+    },
+    "output": {
+      "exists": true,
+      "draft": {
+        "request_id": "DUP-1",
+        "vendor_id": "V1",
+        "address": {
+          "line1": "20 New Street",
+          "city": "Newtown",
+          "postal_code": "44444",
+          "country": "Exampleland"
+        }
+      }
+    }
+  },
+  {
+    "step": 1,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "A draft already exists for request_id \"DUP-1\" (vendor V1, original address from X3a). Per the rules, I must not create a second draft for the same request_id \u2014 I'll leave the existing draft untouched and report this as a duplicate."
+      },
+      {
+        "type": "tool_use",
+        "name": "finish",
+        "input": {
+          "status": "duplicate",
+          "reason": "A draft for request_id DUP-1 already exists (vendor V1, address: 20 New Street, Newtown, 44444, Exampleland). Per policy, the same request_id must not produce a duplicate draft. No new draft was created; the original draft remains unchanged."
+        },
+        "id": "toolu_014UdGE7NDpzTfnXGpx3hekh"
+      }
+    ]
+  },
+  {
+    "step": 1,
+    "role": "tool_result",
+    "tool": "finish",
+    "input": {
+      "status": "duplicate",
+      "reason": "A draft for request_id DUP-1 already exists (vendor V1, address: 20 New Street, Newtown, 44444, Exampleland). Per policy, the same request_id must not produce a duplicate draft. No new draft was created; the original draft remains unchanged."
+    },
+    "output": {
+      "acknowledged": true
+    }
+  }
+]

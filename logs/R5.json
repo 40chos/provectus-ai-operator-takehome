@@ -9,7 +9,7 @@
         "input": {
           "vendor_id_or_name": "V6"
         },
-        "id": "toolu_01PZDBw34fp8iAeWUPJb8aTu"
+        "id": "toolu_01Qu3ub9oxdP5eAWAArgePzj"
       },
       {
         "type": "tool_use",
@@ -17,7 +17,7 @@
         "input": {
           "request_id": "R5"
         },
-        "id": "toolu_01FYgb5Lm8D4aVkRktvYEEBx"
+        "id": "toolu_01UVrSMaX4fxdFncS2Prxb9J"
       }
     ]
   },
@@ -59,7 +59,7 @@
     "content": [
       {
         "type": "text",
-        "text": "All fields are present and valid, vendor resolved uniquely, and no existing draft. Proceeding to save."
+        "text": "All fields present and valid. Proceeding to save the draft."
       },
       {
         "type": "tool_use",
@@ -72,7 +72,7 @@
           "postal_code": "00123",
           "country": "Exampleland"
         },
-        "id": "toolu_013gfbFCYeJVWAfdxfw16bQG"
+        "id": "toolu_01Lf7fTMmLrzyNspkvFN7kFX"
       }
     ]
   },
@@ -100,7 +100,7 @@
     "content": [
       {
         "type": "text",
-        "text": "The first save attempt failed as indicated by the simulation. Retrying once, as allowed."
+        "text": "The first attempt failed (simulated). Retrying once as allowed."
       },
       {
         "type": "tool_use",
@@ -113,7 +113,7 @@
           "postal_code": "00123",
           "country": "Exampleland"
         },
-        "id": "toolu_01JNstNTod6GViPXD4fqw4cP"
+        "id": "toolu_0177mGhybaZbSc4Ah5nEiczY"
       }
     ]
   },
@@ -141,13 +141,13 @@
     "content": [
       {
         "type": "text",
-        "text": "The retry succeeded. Now verifying by reading drafts."
+        "text": "The retry reported success. Now verifying by reading drafts."
       },
       {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01Kjmux4EjTicBT4an1VyFaf"
+        "id": "toolu_01D1t64HseXJUXcL4ziE1arW"
       }
     ]
   },
@@ -187,16 +187,16 @@
     "content": [
       {
         "type": "text",
-        "text": "The draft for request R5 (vendor V6) was verified successfully with the correct address details."
+        "text": "The draft for request R5 (vendor V6) is confirmed saved with the correct address."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor V6 (Birch Goods) resolved uniquely. First save attempt failed due to simulated failure; retried once and succeeded. Verified via read_drafts that R5 draft now exists with address: 42 Fiction Lane, Demo City, 00123, Exampleland. Original address was not overwritten (drafts are separate from vendor record)."
+          "reason": "Vendor V6 (Birch Goods) resolved unambiguously. First save attempt failed due to simulated failure; retried once successfully. Verified via read_drafts that request R5 draft now exists with the new address (42 Fiction Lane, Demo City, 00123, Exampleland) while leaving original address and vendor identity untouched."
         },
-        "id": "toolu_01WgdN111AP8fVoEsrxS16Dg"
+        "id": "toolu_01PXn3a1hssyWdZy8xstH31A"
       }
     ]
   },
@@ -206,7 +206,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor V6 (Birch Goods) resolved uniquely. First save attempt failed due to simulated failure; retried once and succeeded. Verified via read_drafts that R5 draft now exists with address: 42 Fiction Lane, Demo City, 00123, Exampleland. Original address was not overwritten (drafts are separate from vendor record)."
+      "reason": "Vendor V6 (Birch Goods) resolved unambiguously. First save attempt failed due to simulated failure; retried once successfully. Verified via read_drafts that request R5 draft now exists with the new address (42 Fiction Lane, Demo City, 00123, Exampleland) while leaving original address and vendor identity untouched."
     },
     "output": {
       "acknowledged": true

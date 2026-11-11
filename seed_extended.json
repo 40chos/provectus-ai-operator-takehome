@@ -1,0 +1,46 @@
+{
+  "_note": "Extends the original seed with 4 additional requests. Vendors are unchanged from the original seed.",
+  "vendors": [
+    {"vendor_id": "V1", "name": "Cedar Office", "address": {"line1": "1 Example Road", "city": "Sampleton", "postal_code": "00100", "country": "Exampleland"}},
+    {"vendor_id": "V2", "name": "Northstar Supplies East", "address": {"line1": "2 Example Road", "city": "Sampleton", "postal_code": "00200", "country": "Exampleland"}},
+    {"vendor_id": "V3", "name": "Northstar Supplies West", "address": {"line1": "3 Example Road", "city": "Sampleton", "postal_code": "00300", "country": "Exampleland"}},
+    {"vendor_id": "V4", "name": "Maple Parts", "address": {"line1": "4 Example Road", "city": "Sampleton", "postal_code": "00400", "country": "Exampleland"}},
+    {"vendor_id": "V5", "name": "Juniper Tools", "address": {"line1": "5 Example Road", "city": "Sampleton", "postal_code": "00500", "country": "Exampleland"}},
+    {"vendor_id": "V6", "name": "Birch Goods", "address": {"line1": "6 Example Road", "city": "Sampleton", "postal_code": "00600", "country": "Exampleland"}}
+  ],
+  "requests": [
+    {
+      "request_id": "X1",
+      "vendor_name": "Juniper",
+      "_rationale": "Unambiguous partial name match (only Juniper Tools contains 'Juniper'), unlike R2's 'Northstar Supplies'. Should succeed, not need clarification.",
+      "address": {"line1": "10 New Street", "city": "Newtown", "postal_code": "11111", "country": "Exampleland"}
+    },
+    {
+      "request_id": "X2",
+      "vendor_id": "V5",
+      "_rationale": "All fields valid except country is empty -- a required-field trap analogous to R3's missing postal_code but on a different field.",
+      "address": {"line1": "11 New Street", "city": "Newtown", "postal_code": "22222", "country": ""}
+    },
+    {
+      "label": "X3a",
+      "request_id": "DUP-1",
+      "vendor_id": "V1",
+      "_rationale": "First half of a self-contained idempotency pair: creates a draft for request_id DUP-1.",
+      "address": {"line1": "20 New Street", "city": "Newtown", "postal_code": "44444", "country": "Exampleland"}
+    },
+    {
+      "label": "X3b",
+      "request_id": "DUP-1",
+      "vendor_id": "V1",
+      "_rationale": "Resubmits the SAME request_id (DUP-1) with a different address. Must be detected as already-existing and NOT produce a second draft -- this processing run must report status 'duplicate', new_drafts=0, and the ORIGINAL address from X3a must remain unchanged.",
+      "address": {"line1": "99 Changed Street", "city": "Newtown", "postal_code": "44444", "country": "Exampleland"}
+    },
+    {
+      "request_id": "X4",
+      "vendor_id": "V2",
+      "_rationale": "A second independent fail-once scenario (different vendor/request) to confirm the fail-then-retry-then-verify behavior is repeatable, not a fluke of R5. Note: the portal's failure switch only fails ONE save, so a genuine double-failure can't be demonstrated live against this portal -- the hard 'no 3rd attempt' cap is enforced unconditionally in agent.py's controller code (see attempt_save's MAX_SAVE_ATTEMPTS check), independent of whether the portal ever actually fails twice.",
+      "address": {"line1": "12 New Street", "city": "Newtown", "postal_code": "33333", "country": "Exampleland"},
+      "simulate": "fail next save once"
+    }
+  ]
+}

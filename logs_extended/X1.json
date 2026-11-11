@@ -1,0 +1,168 @@
+[
+  {
+    "step": 0,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "I'll start by checking for an existing draft and resolving the vendor in parallel."
+      },
+      {
+        "type": "tool_use",
+        "name": "check_existing_draft",
+        "input": {
+          "request_id": "X1"
+        },
+        "id": "toolu_01QAwAaSS4os5wcaQTY5dpar"
+      },
+      {
+        "type": "tool_use",
+        "name": "resolve_vendor",
+        "input": {
+          "vendor_id_or_name": "Juniper"
+        },
+        "id": "toolu_01ASDsgc3XupJjU6Xw6nkT5w"
+      }
+    ]
+  },
+  {
+    "step": 0,
+    "role": "tool_result",
+    "tool": "check_existing_draft",
+    "input": {
+      "request_id": "X1"
+    },
+    "output": {
+      "exists": false,
+      "draft": null
+    }
+  },
+  {
+    "step": 0,
+    "role": "tool_result",
+    "tool": "resolve_vendor",
+    "input": {
+      "vendor_id_or_name": "Juniper"
+    },
+    "output": {
+      "match": {
+        "vendor_id": "V5",
+        "name": "Juniper Tools"
+      },
+      "original_address": {
+        "line1": "5 Example Road",
+        "city": "Sampleton",
+        "postal_code": "00500",
+        "country": "Exampleland"
+      }
+    }
+  },
+  {
+    "step": 1,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "No existing draft, and vendor resolved unambiguously to V5 (Juniper Tools). All required address fields are present. Proceeding to save."
+      },
+      {
+        "type": "tool_use",
+        "name": "attempt_save",
+        "input": {
+          "request_id": "X1",
+          "vendor_id": "V5",
+          "line1": "10 New Street",
+          "city": "Newtown",
+          "postal_code": "11111",
+          "country": "Exampleland"
+        },
+        "id": "toolu_01Gkd2XtcCjikcd893mHSmiM"
+      }
+    ]
+  },
+  {
+    "step": 1,
+    "role": "tool_result",
+    "tool": "attempt_save",
+    "input": {
+      "request_id": "X1",
+      "vendor_id": "V5",
+      "line1": "10 New Street",
+      "city": "Newtown",
+      "postal_code": "11111",
+      "country": "Exampleland"
+    },
+    "output": {
+      "status_text": "Draft saved. Inspect Saved drafts to verify.",
+      "attempt_number": 1,
+      "looked_like_failure": false
+    }
+  },
+  {
+    "step": 2,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Save reported success. Let me verify by reading the drafts."
+      },
+      {
+        "type": "tool_use",
+        "name": "read_drafts",
+        "input": {},
+        "id": "toolu_01FXHzSPsidurWupSkUNrL5r"
+      }
+    ]
+  },
+  {
+    "step": 2,
+    "role": "tool_result",
+    "tool": "read_drafts",
+    "input": {},
+    "output": {
+      "drafts": [
+        {
+          "request_id": "X1",
+          "vendor_id": "V5",
+          "address": {
+            "line1": "10 New Street",
+            "city": "Newtown",
+            "postal_code": "11111",
+            "country": "Exampleland"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "step": 3,
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "The draft is confirmed saved correctly for request X1, vendor V5 (Juniper Tools), with the new address matching what was requested."
+      },
+      {
+        "type": "tool_use",
+        "name": "finish",
+        "input": {
+          "status": "draft",
+          "reason": "Vendor 'Juniper' unambiguously resolved to V5 (Juniper Tools). Address draft saved and verified: 10 New Street, Newtown, 11111, Exampleland."
+        },
+        "id": "toolu_01KZ6Nd76TB9UP3CWAYagBpL"
+      }
+    ]
+  },
+  {
+    "step": 3,
+    "role": "tool_result",
+    "tool": "finish",
+    "input": {
+      "status": "draft",
+      "reason": "Vendor 'Juniper' unambiguously resolved to V5 (Juniper Tools). Address draft saved and verified: 10 New Street, Newtown, 11111, Exampleland."
+    },
+    "output": {
+      "acknowledged": true
+    }
+  }
+]
