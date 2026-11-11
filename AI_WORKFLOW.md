@@ -176,7 +176,7 @@ discarding every result already earned in the same batch.
    `expected-seed-results.json`.
 5. `python run.py --seed seed_extended.json --logs logs_extended --out extended` then
    `python score.py --report extended/run-report.json --expected expected_extended.json`
-   — runs and scores the 4 additional hand-written cases.
+   — runs and scores the 5 additional hand-written cases.
 6. **To replay without an API key**: the saved transcripts in `logs/*.json` and
    `logs_extended/*.json` are the raw tool-use traces (every assistant turn and every
    tool result) from an actual run — they can be read directly to inspect what the

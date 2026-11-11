@@ -35,7 +35,7 @@ python run.py
 python score.py
 ```
 
-Run the 4 additional hand-written cases:
+Run the 5 additional hand-written cases:
 
 ```bash
 python run.py --seed seed_extended.json --logs logs_extended --out extended
