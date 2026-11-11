@@ -172,6 +172,29 @@ quality gap on exactly this kind of workload (ambiguity detection,
 business-rule judgment) -- roughly 64 vs 24 on agentic tasks -- and that
 judgment quality is the actual thing being assessed here.
 
+## Stateful property-based fuzzing (`tests/test_property_based.py`)
+
+All other tests are example-based: a hand-picked input, a hand-derived
+expected outcome. That catches the scenarios someone thought to write
+down, and nothing else. `tests/test_property_based.py` takes a different
+approach, using Hypothesis's stateful testing (`RuleBasedStateMachine`) --
+the same general technique Anthropic's own engineering team has written
+about using to find real bugs with property-based testing. Instead of one
+fixed scenario, it generates many random sequences of controller tool
+calls (including deliberately adversarial ones no correct model would
+send: an empty vendor id, a nonexistent `V999`, colliding request ids,
+blank address fields) and asserts four hard invariants hold after *every
+single step*, regardless of which random sequence produced that state:
+the retry cap is never exceeded, no two drafts ever share a request_id,
+no saved draft ever has a missing field, and no draft ever targets a
+vendor outside the known six. This is a materially different kind of
+guarantee than the example tests give -- it doesn't just check that a
+few scenarios someone thought of work correctly, it checks that the
+invariant holds no matter what sequence of (possibly malformed) calls
+gets thrown at the controller. It runs entirely against the real local
+portal via the existing Playwright browser fixture; it never constructs
+an Anthropic client.
+
 ## Reproduce or replay
 
 1. From `submission/`, with a virtualenv containing `requirements.txt` installed and

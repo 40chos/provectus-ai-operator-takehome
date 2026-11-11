@@ -24,9 +24,14 @@ Playwright/browser usage is free, only the Anthropic call costs money and
 these tests never make one):
 
 ```bash
-pip install pytest
+pip install -r requirements.txt
 pytest tests/ -v
 ```
+
+Includes a stateful property-based fuzzing test (`tests/test_property_based.py`,
+via Hypothesis) that generates random, including adversarial, sequences of
+controller calls and checks hard invariants hold after every step -- see
+`AI_WORKFLOW.md` for details.
 
 Run the original 5 seed requests (this does call the Anthropic API):
 
