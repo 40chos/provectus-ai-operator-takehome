@@ -91,7 +91,7 @@ response header, and that `MAX_STEPS` exhaustion unconditionally reported
 earlier in the same run -- both fixed (see `agent.py`).
 
 To make these fixes (and the earlier caching/retry additions) verifiable
-without re-spending API budget, a 43-test `pytest` suite was added under
+without re-spending API budget, a 45-test `pytest` suite was added under
 `tests/`:
 - `test_portal_client.py` / `test_controller.py` drive the real local portal
   through a real headless browser (Playwright is free; only the Anthropic
