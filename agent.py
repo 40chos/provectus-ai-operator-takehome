@@ -13,17 +13,39 @@ from __future__ import annotations
 
 import json
 import os
+import random
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from anthropic import Anthropic
+from anthropic import Anthropic, APIStatusError, RateLimitError
 
 from portal_client import PortalClient
 
 MODEL = "claude-sonnet-5"
 MAX_STEPS = 10
-MAX_SAVE_ATTEMPTS = 2  # = "at most one retry"
+MAX_SAVE_ATTEMPTS = 2  # = "at most one retry" (business rule -- see domain.md rule 4)
+
+# Transport-layer retry for transient API errors (429/529), separate from and
+# not counted against the business-level MAX_SAVE_ATTEMPTS above. 2026
+# production guidance: exponential backoff starting ~1-2s, doubling, capped,
+# plus jitter to avoid thundering-herd on shared-key retries; respect
+# Retry-After when the API supplies one.
+API_MAX_RETRIES = 5
+API_BACKOFF_BASE_S = 1.5
+API_BACKOFF_CAP_S = 30.0
+
+# Caching the static prefix (system prompt + tool definitions) is the
+# single highest-ROI production optimization for a loop like this one,
+# where the same system+tools are resent on every step of every request.
+# Two preconditions kept in mind: (1) SYSTEM_PROMPT below must stay fully
+# static -- no run-specific values (dates, request IDs, etc.) are
+# interpolated into it, which would invalidate the cache on every call;
+# per-request data instead goes only into the first user message. (2) the
+# system prompt must exceed the model's minimum cacheable block size,
+# which it does once the rules text below is included in full.
+CACHE_CONTROL = {"type": "ephemeral"}
 
 DOMAIN_RULES = """\
 Rules for this exercise (fictional, authoritative -- do not add your own):
@@ -134,6 +156,33 @@ TOOLS = [
         },
     },
 ]
+
+
+def _create_with_retry(client: Anthropic, **kwargs):
+    """Transport-layer retry for 429 (rate limit) / 529 (overloaded) errors.
+
+    This is independent of and not counted against the domain-level
+    MAX_SAVE_ATTEMPTS retry cap -- that's a business rule about how many
+    times the *portal* may be asked to save; this is infrastructure
+    resilience for a *transient API hiccup*, and conflating the two would
+    make the business logic depend on network conditions.
+    """
+    last_exc = None
+    for attempt in range(API_MAX_RETRIES):
+        try:
+            return client.messages.create(**kwargs)
+        except RateLimitError as e:
+            last_exc = e
+            retry_after = getattr(e, "retry_after", None)
+            delay = retry_after if retry_after else min(API_BACKOFF_BASE_S * (2 ** attempt), API_BACKOFF_CAP_S)
+        except APIStatusError as e:
+            if e.status_code not in (529, 503):
+                raise
+            last_exc = e
+            delay = min(API_BACKOFF_BASE_S * (2 ** attempt), API_BACKOFF_CAP_S)
+        delay += random.uniform(0, delay * 0.25)  # jitter
+        time.sleep(delay)
+    raise last_exc
 
 
 @dataclass
@@ -271,14 +320,26 @@ def run_request(
     final_reason = "step limit reached without calling finish"
 
     for step in range(MAX_STEPS):
-        response = client.messages.create(
+        t0 = time.monotonic()
+        response = _create_with_retry(
+            client,
             model=MODEL,
             max_tokens=1024,
             system=SYSTEM_PROMPT,
             tools=TOOLS,
+            cache_control=CACHE_CONTROL,
             messages=messages,
         )
-        transcript.append({"step": step, "role": "assistant", "content": _serialize(response.content)})
+        latency_s = round(time.monotonic() - t0, 3)
+        transcript.append(
+            {
+                "step": step,
+                "role": "assistant",
+                "content": _serialize(response.content),
+                "usage": response.usage.model_dump() if response.usage else None,
+                "latency_s": latency_s,
+            }
+        )
 
         messages.append({"role": "assistant", "content": response.content})
 

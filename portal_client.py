@@ -13,6 +13,19 @@ from typing import Optional
 from playwright.sync_api import Page
 
 
+def _sanitize(text: str) -> str:
+    """Strip characters commonly used for indirect prompt injection (zero-width
+    joiners, other invisible/control chars) before any page-derived text is
+    passed into the model's context. This portal's data is fully fictional and
+    static, so the risk here is near-zero -- but a real production UI-operator
+    agent reads content it does not control (vendor names, status messages),
+    and that boundary should be enforced unconditionally, not only when a
+    concrete attack is anticipated."""
+    if text is None:
+        return text
+    return "".join(ch for ch in text if ch.isprintable() or ch in "\n\t")
+
+
 @dataclass
 class Vendor:
     vendor_id: str
@@ -36,9 +49,9 @@ class PortalClient:
             if not opt["value"]:
                 continue
             # option text is "V1 — Cedar Office"; strip the id/em-dash prefix
-            text = opt["text"]
+            text = _sanitize(opt["text"])
             name = text.split("—", 1)[1].strip() if "—" in text else text
-            vendors.append(Vendor(vendor_id=opt["value"], name=name, address={}))
+            vendors.append(Vendor(vendor_id=_sanitize(opt["value"]), name=name, address={}))
         self._vendors = vendors
 
     def list_vendors(self) -> list[dict]:
@@ -81,7 +94,7 @@ class PortalClient:
         self.page.fill("#postal_code", postal_code)
         self.page.fill("#country", country)
         self.page.click("button:has-text('Save draft')")
-        return self.page.inner_text("#status")
+        return _sanitize(self.page.inner_text("#status"))
 
     def click_reset(self) -> None:
         """Reset fictional drafts -- used only for repeatable test runs,
