@@ -5,7 +5,7 @@
     "content": [
       {
         "type": "text",
-        "text": "I'll process this step by step.\n\nFirst, let me resolve the vendor and check for existing drafts."
+        "text": "I'll start by resolving the vendor and checking for existing drafts in parallel, since these are independent checks."
       },
       {
         "type": "tool_use",
@@ -13,7 +13,7 @@
         "input": {
           "vendor_id_or_name": "Juniper"
         },
-        "id": "toolu_01UaCbuZKJBdkiy17Ckxvico"
+        "id": "toolu_01G9ka5EiCmr35FgK8Ke2S9K"
       },
       {
         "type": "tool_use",
@@ -21,7 +21,7 @@
         "input": {
           "request_id": "X1"
         },
-        "id": "toolu_013SZr7pEXG1RgGiZAK5ZQvP"
+        "id": "toolu_016e4FhmMNZvwGNYtttZ6MfP"
       }
     ],
     "usage": {
@@ -33,7 +33,7 @@
       "cache_read_input_tokens": 0,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 144,
+      "output_tokens": 148,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -41,7 +41,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.782
+    "latency_s": 1.767
   },
   {
     "step": 0,
@@ -83,7 +83,7 @@
     "content": [
       {
         "type": "text",
-        "text": "Vendor resolved unambiguously to Juniper Tools (V5), and no existing draft exists for X1. All required address fields are present and nonempty. Proceeding to save."
+        "text": "Vendor resolved unambiguously to \"Juniper Tools\" (V5), and no existing draft for request_id X1. All required address fields are present and nonempty. Proceeding to save."
       },
       {
         "type": "tool_use",
@@ -96,19 +96,19 @@
           "postal_code": "11111",
           "country": "Exampleland"
         },
-        "id": "toolu_01S1BQoP64Fiyz5EiidaxKSe"
+        "id": "toolu_0155xCGHC7FqEwvYa8UZ1zby"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 301
+        "ephemeral_5m_input_tokens": 305
       },
-      "cache_creation_input_tokens": 301,
+      "cache_creation_input_tokens": 305,
       "cache_read_input_tokens": 1868,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 236,
+      "output_tokens": 239,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -116,7 +116,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.03
+    "latency_s": 4.422
   },
   {
     "step": 1,
@@ -143,25 +143,25 @@
     "content": [
       {
         "type": "text",
-        "text": "The save appears to have succeeded on the first attempt. Let me verify by reading drafts."
+        "text": "Save succeeded on first attempt. Now verifying by reading drafts."
       },
       {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01Ahp3WY74gTK9iJmsSVkEfo"
+        "id": "toolu_01Ex4SwzJMNePGq81v2E6if3"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 290
+        "ephemeral_5m_input_tokens": 293
       },
-      "cache_creation_input_tokens": 290,
-      "cache_read_input_tokens": 2169,
+      "cache_creation_input_tokens": 293,
+      "cache_read_input_tokens": 2173,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 58,
+      "output_tokens": 53,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -169,7 +169,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.255
+    "latency_s": 1.005
   },
   {
     "step": 2,
@@ -198,28 +198,28 @@
     "content": [
       {
         "type": "text",
-        "text": "Verified: the draft for request_id X1 was saved correctly with the new address for vendor V5 (Juniper Tools), and the vendor ID/name were not altered."
+        "text": "The draft for request_id X1 is confirmed saved correctly with vendor V5 (Juniper Tools) and the new address fields, without altering vendor ID/name or the original address record."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor 'Juniper' unambiguously resolved to Juniper Tools (V5). Address draft saved successfully on first attempt and verified via read_drafts: line1='10 New Street', city='Newtown', postal_code='11111', country='Exampleland'. No duplicate existed prior to save."
+          "reason": "Vendor 'Juniper' unambiguously matched Juniper Tools (V5). Saved new address draft for request X1 (10 New Street, Newtown, 11111, Exampleland) on first attempt; verified via read_drafts that the draft was persisted correctly with no changes to vendor identity or original address."
         },
-        "id": "toolu_016PmADyAhFod7o9xGH2jW7u"
+        "id": "toolu_01E5G5q7hzwSmE9mXw2AgC52"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 139
+        "ephemeral_5m_input_tokens": 134
       },
-      "cache_creation_input_tokens": 139,
-      "cache_read_input_tokens": 2459,
+      "cache_creation_input_tokens": 134,
+      "cache_read_input_tokens": 2466,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 223,
+      "output_tokens": 230,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -227,7 +227,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.123
+    "latency_s": 2.503
   },
   {
     "step": 3,
@@ -235,7 +235,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor 'Juniper' unambiguously resolved to Juniper Tools (V5). Address draft saved successfully on first attempt and verified via read_drafts: line1='10 New Street', city='Newtown', postal_code='11111', country='Exampleland'. No duplicate existed prior to save."
+      "reason": "Vendor 'Juniper' unambiguously matched Juniper Tools (V5). Saved new address draft for request X1 (10 New Street, Newtown, 11111, Exampleland) on first attempt; verified via read_drafts that the draft was persisted correctly with no changes to vendor identity or original address."
     },
     "output": {
       "acknowledged": true

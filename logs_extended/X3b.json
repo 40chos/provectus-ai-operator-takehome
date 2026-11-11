@@ -9,7 +9,7 @@
         "input": {
           "request_id": "DUP-1"
         },
-        "id": "toolu_01H6pqd8Z2LoLZ1LRvdL2LFU"
+        "id": "toolu_013mwzecGj71qB1q547LMzrx"
       }
     ],
     "usage": {
@@ -29,7 +29,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.141
+    "latency_s": 1.024
   },
   {
     "step": 0,
@@ -59,16 +59,16 @@
     "content": [
       {
         "type": "text",
-        "text": "A draft already exists for request_id \"DUP-1\" (vendor V1, address \"20 New Street, Newtown, 44444, Exampleland\"). Per the rules, I must not attempt another save and should leave the existing draft untouched."
+        "text": "A draft already exists for request_id \"DUP-1\" (original address: 20 New Street, Newtown, 44444, Exampleland). Per the rules, I must not create a second draft or overwrite the existing one."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "duplicate",
-          "reason": "A draft for request_id DUP-1 already exists (vendor V1, original address '20 New Street, Newtown, 44444, Exampleland'). Per rules, no new draft was created; the existing draft remains unchanged. new_drafts=0."
+          "reason": "Request_id DUP-1 already has an existing draft (20 New Street, Newtown, 44444, Exampleland). Per duplicate-prevention rules, the new submission (99 Changed Street) was not saved, and the original draft remains unchanged. new_drafts=0."
         },
-        "id": "toolu_01P1iwwyEt75uavair96PrXu"
+        "id": "toolu_01VA19bqCpH3367fah12f6h4"
       }
     ],
     "usage": {
@@ -80,7 +80,7 @@
       "cache_read_input_tokens": 1912,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 226,
+      "output_tokens": 228,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -88,7 +88,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.258
+    "latency_s": 2.181
   },
   {
     "step": 1,
@@ -96,7 +96,7 @@
     "tool": "finish",
     "input": {
       "status": "duplicate",
-      "reason": "A draft for request_id DUP-1 already exists (vendor V1, original address '20 New Street, Newtown, 44444, Exampleland'). Per rules, no new draft was created; the existing draft remains unchanged. new_drafts=0."
+      "reason": "Request_id DUP-1 already has an existing draft (20 New Street, Newtown, 44444, Exampleland). Per duplicate-prevention rules, the new submission (99 Changed Street) was not saved, and the original draft remains unchanged. new_drafts=0."
     },
     "output": {
       "acknowledged": true

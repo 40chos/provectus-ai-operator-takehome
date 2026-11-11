@@ -373,8 +373,12 @@ def _execute_tool(
         status_text = client.fill_and_submit(
             validated.request_id, validated.line1, validated.city, validated.postal_code, validated.country
         )
-        failed = "failure" in status_text.lower() or "already exists" in status_text.lower()
-        if "failure" in status_text.lower():
+        # Only checks for the simulated-failure wording. A duplicate
+        # request_id never reaches this line -- the veto above already
+        # rejects it before fill_and_submit is called -- so there is no
+        # "already exists" case to detect here.
+        failed = "failure" in status_text.lower()
+        if failed:
             state.had_failure = True
         # A business-level save failure is not a tool-call error.
         return ToolExecutionResult(

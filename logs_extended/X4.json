@@ -9,7 +9,7 @@
         "input": {
           "request_id": "X4"
         },
-        "id": "toolu_019o34uPCC6TAQxbb4UYAGqq"
+        "id": "toolu_01F6VNjfM6jv12TDTqdN3dvF"
       },
       {
         "type": "tool_use",
@@ -17,7 +17,7 @@
         "input": {
           "vendor_id_or_name": "V2"
         },
-        "id": "toolu_01ARM7fen4HKaNwWUVkdQ8jp"
+        "id": "toolu_01WX4ump2Xu4kp3cvQXEQH1b"
       }
     ],
     "usage": {
@@ -29,15 +29,15 @@
       "cache_read_input_tokens": 0,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 131,
+      "output_tokens": 130,
       "output_tokens_details": {
-        "thinking_tokens": 19
+        "thinking_tokens": 17
       },
       "server_tool_use": null,
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.467
+    "latency_s": 1.36
   },
   {
     "step": 0,
@@ -78,6 +78,10 @@
     "role": "assistant",
     "content": [
       {
+        "type": "text",
+        "text": "All required fields are present and valid. Proceeding to save."
+      },
+      {
         "type": "tool_use",
         "name": "attempt_save",
         "input": {
@@ -88,19 +92,19 @@
           "postal_code": "33333",
           "country": "Exampleland"
         },
-        "id": "toolu_01RiaGCyXmW9H8n4bQmFJRi6"
+        "id": "toolu_01EH7adsZuPMMGor3rnZa2Dc"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 290
+        "ephemeral_5m_input_tokens": 288
       },
-      "cache_creation_input_tokens": 290,
+      "cache_creation_input_tokens": 288,
       "cache_read_input_tokens": 1996,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 178,
+      "output_tokens": 197,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -108,7 +112,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.692
+    "latency_s": 1.777
   },
   {
     "step": 1,
@@ -135,7 +139,7 @@
     "content": [
       {
         "type": "text",
-        "text": "Save failed as expected (simulated). I'll retry once."
+        "text": "The first attempt failed as expected (simulated). Retrying once, per policy."
       },
       {
         "type": "tool_use",
@@ -148,19 +152,19 @@
           "postal_code": "33333",
           "country": "Exampleland"
         },
-        "id": "toolu_01FXGaB8dTAGbbAYS6Gg9tW4"
+        "id": "toolu_01KQgAsRfH5xGg26asMk1aps"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 227
+        "ephemeral_5m_input_tokens": 246
       },
-      "cache_creation_input_tokens": 227,
-      "cache_read_input_tokens": 2286,
+      "cache_creation_input_tokens": 246,
+      "cache_read_input_tokens": 2284,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 198,
+      "output_tokens": 204,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -168,7 +172,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.936
+    "latency_s": 1.925
   },
   {
     "step": 2,
@@ -194,22 +198,26 @@
     "role": "assistant",
     "content": [
       {
+        "type": "text",
+        "text": "The retry succeeded. Verifying by reading drafts before finishing."
+      },
+      {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_0114AQw8jFesFMaKCBr46mHS"
+        "id": "toolu_01VwvP3eRXHmha8umERR5ui5"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 252
+        "ephemeral_5m_input_tokens": 258
       },
-      "cache_creation_input_tokens": 252,
-      "cache_read_input_tokens": 2513,
+      "cache_creation_input_tokens": 258,
+      "cache_read_input_tokens": 2530,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 28,
+      "output_tokens": 52,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -217,7 +225,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 0.775
+    "latency_s": 1.035
   },
   {
     "step": 3,
@@ -266,28 +274,28 @@
     "content": [
       {
         "type": "text",
-        "text": "Draft verified successfully for request X4, vendor V2 (Northstar Supplies East), with the new address correctly saved after one retry following the simulated first-attempt failure."
+        "text": "Verified: the draft for request_id X4 (vendor V2, Northstar Supplies East) was saved correctly with the new address, after one simulated failure and one successful retry."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once and succeeded. Verified via read_drafts that request_id X4 now has a draft with address 12 New Street, Newtown, 33333, Exampleland, vendor_id V2, with original address untouched."
+          "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once successfully. Verified via read_drafts that request X4 now has a saved draft with the new address (12 New Street, Newtown, 33333, Exampleland), original address untouched, vendor ID/name unchanged, and no duplicate was created."
         },
-        "id": "toolu_01QTxnq2F6fpWtj4Xesboqoz"
+        "id": "toolu_01HS2KQGeLorWnqxz4pJFw2P"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 248
+        "ephemeral_5m_input_tokens": 272
       },
-      "cache_creation_input_tokens": 248,
-      "cache_read_input_tokens": 2765,
+      "cache_creation_input_tokens": 272,
+      "cache_read_input_tokens": 2788,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 238,
+      "output_tokens": 250,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -295,7 +303,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.756
+    "latency_s": 2.733
   },
   {
     "step": 4,
@@ -303,7 +311,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once and succeeded. Verified via read_drafts that request_id X4 now has a draft with address 12 New Street, Newtown, 33333, Exampleland, vendor_id V2, with original address untouched."
+      "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once successfully. Verified via read_drafts that request X4 now has a saved draft with the new address (12 New Street, Newtown, 33333, Exampleland), original address untouched, vendor ID/name unchanged, and no duplicate was created."
     },
     "output": {
       "acknowledged": true
