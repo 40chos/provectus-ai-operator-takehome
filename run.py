@@ -17,7 +17,6 @@ from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 
 from agent import make_client, run_request
-from cost_tracker import BudgetExceeded, CostTracker
 from portal_client import PortalClient
 from server_utils import start_server, stop_server
 
@@ -28,7 +27,7 @@ URL = f"http://127.0.0.1:{PORT}/portal.html"
 log = logging.getLogger(__name__)
 
 
-def run_all(seed_path: Path, logs_dir: Path) -> tuple[list[dict], float, dict]:
+def run_all(seed_path: Path, logs_dir: Path) -> tuple[list[dict], float]:
     seed = json.loads(seed_path.read_text())
     requests = seed["requests"]
 
@@ -39,9 +38,6 @@ def run_all(seed_path: Path, logs_dir: Path) -> tuple[list[dict], float, dict]:
     server = start_server(PORT, PORTAL_DIR)
     results = []
     run_t0 = time.monotonic()
-    # One cost tracker shared across every request in this run -- the hard
-    # cap is a budget for the whole batch, not an allowance per request.
-    cost_tracker = CostTracker()
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -59,11 +55,8 @@ def run_all(seed_path: Path, logs_dir: Path) -> tuple[list[dict], float, dict]:
 
                     label = request.get("label", request.get("request_id", "?"))
                     try:
-                        outcome = run_request(anthropic_client, portal, request, logs_dir, cost_tracker)
-                        log.info(
-                            "%s -> %s (%d new draft(s)); run spend so far: $%.4f",
-                            label, outcome.status, outcome.new_drafts, cost_tracker.total_usd,
-                        )
+                        outcome = run_request(anthropic_client, portal, request, logs_dir)
+                        log.info("%s -> %s (%d new draft(s))", label, outcome.status, outcome.new_drafts)
                         results.append(
                             {
                                 "request_id": outcome.request_id,
@@ -76,31 +69,9 @@ def run_all(seed_path: Path, logs_dir: Path) -> tuple[list[dict], float, dict]:
                                 "usage": outcome.total_usage,
                             }
                         )
-                    except BudgetExceeded as exc:
-                        # The cap is a budget for the WHOLE run, not one
-                        # request -- stop processing further requests
-                        # entirely rather than treating this as one
-                        # request's error and continuing to spend more.
-                        log.error("hard cost cap hit, stopping run: %s", exc)
-                        results.append(
-                            {
-                                "request_id": label,
-                                "status": "budget-exceeded",
-                                "reason": str(exc),
-                                "save_attempts": None,
-                                "had_failure": None,
-                                "new_drafts": 0,
-                                "transcript_path": str(logs_dir / f"{label}.json"),
-                                "usage": None,
-                            }
-                        )
-                        break
                     except Exception as exc:  # noqa: BLE001
-                        # One request crashing (e.g. a non-retryable API error,
-                        # an unexpected Playwright failure) must not take the
-                        # whole batch down -- record it and keep going, so a
-                        # single bad request doesn't erase results already
-                        # earned for every other request in this run.
+                        # One request crashing must not take the whole batch
+                        # down -- record it and keep going.
                         log.exception("%s crashed: %s", label, exc)
                         results.append(
                             {
@@ -120,16 +91,13 @@ def run_all(seed_path: Path, logs_dir: Path) -> tuple[list[dict], float, dict]:
         stop_server(server)
 
     wall_s = round(time.monotonic() - run_t0, 3)
-    log.info("run finished in %.1fs, total cost $%.4f", wall_s, cost_tracker.total_usd)
-    return results, wall_s, cost_tracker.summary()
+    log.info("run finished in %.1fs", wall_s)
+    return results, wall_s
 
 
 def _aggregate_usage(results: list[dict]) -> dict:
-    """Run-level cost/latency rollup -- per-step usage is already captured in
-    each request's transcript, but nothing previously summed it into a single
-    'what did this run cost' figure, which is the kind of visibility a
-    production operator needs and a judged "technical execution" dimension
-    this take-home cares about."""
+    """Run-level cost/latency rollup -- sums the per-step usage already
+    captured in each request's transcript."""
     totals = {"input_tokens": 0, "output_tokens": 0, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}
     for r in results:
         usage = r.get("usage")
@@ -140,18 +108,17 @@ def _aggregate_usage(results: list[dict]) -> dict:
     return totals
 
 
-def write_reports(results: list[dict], out_dir: Path, wall_s: float, cost_summary: dict) -> None:
+def write_reports(results: list[dict], out_dir: Path, wall_s: float) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     totals = _aggregate_usage(results)
-    summary = {"results": results, "run_totals": {**totals, "wall_s": wall_s, "cost": cost_summary}}
+    summary = {"results": results, "run_totals": {**totals, "wall_s": wall_s}}
     (out_dir / "run-report.json").write_text(json.dumps(summary, indent=2))
 
     lines = ["# Run report\n"]
     lines.append(
         f"**Totals:** {totals['input_tokens']} input / {totals['output_tokens']} output tokens, "
         f"{totals['cache_read_input_tokens']} cache-read, {totals['cache_creation_input_tokens']} cache-write, "
-        f"{wall_s}s wall-clock, **${cost_summary['total_usd']:.4f} actual cost** "
-        f"(hard cap: ${cost_summary['cap_usd']}).\n"
+        f"{wall_s}s wall-clock.\n"
     )
     for r in results:
         lines.append(f"## {r['request_id']}")
@@ -172,7 +139,6 @@ if __name__ == "__main__":
     parser.add_argument("--out", default=".")
     args = parser.parse_args()
 
-    results, wall_s, cost_summary = run_all(Path(args.seed), Path(args.logs))
-    write_reports(results, Path(args.out), wall_s, cost_summary)
+    results, wall_s = run_all(Path(args.seed), Path(args.logs))
+    write_reports(results, Path(args.out), wall_s)
     print(json.dumps(results, indent=2))
-    print(f"\nActual cost: ${cost_summary['total_usd']:.4f} / ${cost_summary['cap_usd']} cap")

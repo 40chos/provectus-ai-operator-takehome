@@ -12,8 +12,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import agent  # noqa: E402
 from agent import MAX_STEPS, run_request  # noqa: E402
-from cost_tracker import BudgetExceeded, CostTracker  # noqa: E402
-import pytest  # noqa: E402
 
 
 class _FakeUsage:
@@ -130,30 +128,3 @@ def test_step_limit_reached_after_a_real_save_reports_draft_not_failed(portal, t
     assert outcome.new_drafts == 1
     assert "Step limit" in outcome.reason
     assert portal.read_drafts()[0]["request_id"] == "FAKE-3"
-
-
-def test_run_request_stops_before_call_when_cost_tracker_near_cap(portal, tmp_path):
-    finish_response = _FakeResponse(
-        [_tool_use_block("finish", {"status": "unresolved", "reason": "should never be reached"}, "t1")]
-    )
-    client = _ScriptedClient([finish_response])
-    tracker = CostTracker(cap_usd=0.20)
-    tracker.total_usd = 0.19  # within the safety margin of the cap
-
-    with pytest.raises(BudgetExceeded):
-        run_request(client, portal, {"request_id": "FAKE-4", "vendor_id": "V1"}, tmp_path, tracker)
-
-    assert len(client.calls) == 0  # the API call itself must never happen
-
-
-def test_run_request_adds_real_usage_to_shared_tracker(portal, tmp_path):
-    finish_response = _FakeResponse(
-        [_tool_use_block("finish", {"status": "unresolved", "reason": "test"}, "t1")]
-    )
-    client = _ScriptedClient([finish_response])
-    tracker = CostTracker(cap_usd=0.20)
-
-    run_request(client, portal, {"request_id": "FAKE-5", "vendor_id": "V1"}, tmp_path, tracker)
-
-    assert tracker.calls == 1
-    assert tracker.total_usd > 0

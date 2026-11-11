@@ -4,12 +4,8 @@
     "role": "assistant",
     "content": [
       {
-        "type": "tool_use",
-        "name": "resolve_vendor",
-        "input": {
-          "vendor_id_or_name": "V999"
-        },
-        "id": "toolu_013X1yETJtiYXCEtHVPTjjTK"
+        "type": "text",
+        "text": "I'll start by checking if there's an existing draft for this request, and resolve the vendor ID to confirm it exists."
       },
       {
         "type": "tool_use",
@@ -17,7 +13,15 @@
         "input": {
           "request_id": "R4"
         },
-        "id": "toolu_013raQVhxXQhznVQ1eLoMmZR"
+        "id": "toolu_01NeVWRjBaJS44PzazogNknD"
+      },
+      {
+        "type": "tool_use",
+        "name": "resolve_vendor",
+        "input": {
+          "vendor_id_or_name": "V999"
+        },
+        "id": "toolu_01KZa9R2XnG9KGyrKaUoiQaU"
       }
     ],
     "usage": {
@@ -29,27 +33,15 @@
       "cache_read_input_tokens": 0,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 138,
+      "output_tokens": 149,
       "output_tokens_details": {
-        "thinking_tokens": 25
+        "thinking_tokens": 0
       },
       "server_tool_use": null,
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.531
-  },
-  {
-    "step": 0,
-    "role": "tool_result",
-    "tool": "resolve_vendor",
-    "input": {
-      "vendor_id_or_name": "V999"
-    },
-    "output": {
-      "not_found": true
-    },
-    "is_error": false
+    "latency_s": 1.742
   },
   {
     "step": 0,
@@ -65,33 +57,45 @@
     "is_error": false
   },
   {
+    "step": 0,
+    "role": "tool_result",
+    "tool": "resolve_vendor",
+    "input": {
+      "vendor_id_or_name": "V999"
+    },
+    "output": {
+      "not_found": true
+    },
+    "is_error": false
+  },
+  {
     "step": 1,
     "role": "assistant",
     "content": [
       {
         "type": "text",
-        "text": "The vendor ID \"V999\" does not match any known vendor in the portal, and no partial name was given to attempt resolution. Since I should never guess an unknown vendor, I'll end this request asking for clarification."
+        "text": "No existing draft, but the vendor ID V999 does not resolve to any known vendor in the portal."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "unresolved",
-          "reason": "Vendor ID \"V999\" does not match any vendor in the portal. Cannot proceed with the address update without a valid vendor identifier. Please verify the vendor ID and resubmit."
+          "reason": "Vendor ID 'V999' does not match any vendor in the portal. Cannot proceed with address update for an unknown vendor. Please verify the correct vendor ID."
         },
-        "id": "toolu_019pwcxLrEvbw9ZNhD78Eovt"
+        "id": "toolu_01J5BP6uWcPSH3f5Eidnmt49"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 222
+        "ephemeral_5m_input_tokens": 234
       },
-      "cache_creation_input_tokens": 222,
+      "cache_creation_input_tokens": 234,
       "cache_read_input_tokens": 1801,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 197,
+      "output_tokens": 158,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -99,7 +103,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.352
+    "latency_s": 1.727
   },
   {
     "step": 1,
@@ -107,7 +111,7 @@
     "tool": "finish",
     "input": {
       "status": "unresolved",
-      "reason": "Vendor ID \"V999\" does not match any vendor in the portal. Cannot proceed with the address update without a valid vendor identifier. Please verify the vendor ID and resubmit."
+      "reason": "Vendor ID 'V999' does not match any vendor in the portal. Cannot proceed with address update for an unknown vendor. Please verify the correct vendor ID."
     },
     "output": {
       "acknowledged": true

@@ -9,7 +9,7 @@
         "input": {
           "request_id": "DUP-1"
         },
-        "id": "toolu_01WeNR5YwNxXta6ze9VQ1ppd"
+        "id": "toolu_01H6pqd8Z2LoLZ1LRvdL2LFU"
       }
     ],
     "usage": {
@@ -21,15 +21,15 @@
       "cache_read_input_tokens": 0,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 57,
+      "output_tokens": 74,
       "output_tokens_details": {
-        "thinking_tokens": 0
+        "thinking_tokens": 15
       },
       "server_tool_use": null,
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.031
+    "latency_s": 1.141
   },
   {
     "step": 0,
@@ -59,28 +59,28 @@
     "content": [
       {
         "type": "text",
-        "text": "A draft already exists for request_id \"DUP-1\". Per the rules, I must not attempt another save and should report this as a duplicate, leaving the original draft untouched."
+        "text": "A draft already exists for request_id \"DUP-1\" (vendor V1, address \"20 New Street, Newtown, 44444, Exampleland\"). Per the rules, I must not attempt another save and should leave the existing draft untouched."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "duplicate",
-          "reason": "A draft already exists for request_id DUP-1 (vendor V1, address: 20 New Street, Newtown, 44444, Exampleland). Per policy, no new draft is created for a repeated request_id; the existing draft remains unchanged."
+          "reason": "A draft for request_id DUP-1 already exists (vendor V1, original address '20 New Street, Newtown, 44444, Exampleland'). Per rules, no new draft was created; the existing draft remains unchanged. new_drafts=0."
         },
-        "id": "toolu_011spEKsLMhBsGrSSP6MkAnW"
+        "id": "toolu_01P1iwwyEt75uavair96PrXu"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 144
+        "ephemeral_5m_input_tokens": 160
       },
-      "cache_creation_input_tokens": 144,
+      "cache_creation_input_tokens": 160,
       "cache_read_input_tokens": 1912,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 203,
+      "output_tokens": 226,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -88,7 +88,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.11
+    "latency_s": 2.258
   },
   {
     "step": 1,
@@ -96,7 +96,7 @@
     "tool": "finish",
     "input": {
       "status": "duplicate",
-      "reason": "A draft already exists for request_id DUP-1 (vendor V1, address: 20 New Street, Newtown, 44444, Exampleland). Per policy, no new draft is created for a repeated request_id; the existing draft remains unchanged."
+      "reason": "A draft for request_id DUP-1 already exists (vendor V1, original address '20 New Street, Newtown, 44444, Exampleland'). Per rules, no new draft was created; the existing draft remains unchanged. new_drafts=0."
     },
     "output": {
       "acknowledged": true

@@ -9,7 +9,7 @@
         "input": {
           "request_id": "DUP-1"
         },
-        "id": "toolu_011Wgy1sSnRXyYLUT2aJj3oe"
+        "id": "toolu_013SnQdugni9zAGD9UAEJBpy"
       },
       {
         "type": "tool_use",
@@ -17,7 +17,7 @@
         "input": {
           "vendor_id_or_name": "V1"
         },
-        "id": "toolu_01DGiWS1UUwZ7Z6w9DH6rSdn"
+        "id": "toolu_01BLFRt6C5Cyj2EhxoS5624Q"
       }
     ],
     "usage": {
@@ -29,15 +29,15 @@
       "cache_read_input_tokens": 0,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 137,
+      "output_tokens": 134,
       "output_tokens_details": {
-        "thinking_tokens": 21
+        "thinking_tokens": 19
       },
       "server_tool_use": null,
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.422
+    "latency_s": 1.251
   },
   {
     "step": 0,
@@ -79,7 +79,7 @@
     "content": [
       {
         "type": "text",
-        "text": "No existing draft, vendor resolved unambiguously. Proceeding to save."
+        "text": "No existing draft for DUP-1, vendor V1 resolves uniquely to \"Cedar Office\". All required address fields are present. Proceeding to save."
       },
       {
         "type": "tool_use",
@@ -92,19 +92,19 @@
           "postal_code": "44444",
           "country": "Exampleland"
         },
-        "id": "toolu_018ho5ovdPfaW6RdEXvE5Dhc"
+        "id": "toolu_01HkZ5rihY3xLsSbqazHicD4"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 292
+        "ephemeral_5m_input_tokens": 290
       },
-      "cache_creation_input_tokens": 292,
+      "cache_creation_input_tokens": 290,
       "cache_read_input_tokens": 1850,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 208,
+      "output_tokens": 232,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -112,7 +112,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.886
+    "latency_s": 1.969
   },
   {
     "step": 1,
@@ -138,22 +138,26 @@
     "role": "assistant",
     "content": [
       {
+        "type": "text",
+        "text": "Save succeeded on first attempt. Verifying by reading drafts."
+      },
+      {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01UCtjGbekzhBzWuxQ6d3M2W"
+        "id": "toolu_01Sa2M6Gwqu7hT6nz1a64jRU"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 262
+        "ephemeral_5m_input_tokens": 286
       },
-      "cache_creation_input_tokens": 262,
-      "cache_read_input_tokens": 2142,
+      "cache_creation_input_tokens": 286,
+      "cache_read_input_tokens": 2140,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 28,
+      "output_tokens": 52,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -161,7 +165,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 0.728
+    "latency_s": 0.93
   },
   {
     "step": 2,
@@ -200,28 +204,28 @@
     "content": [
       {
         "type": "text",
-        "text": "The draft for request_id DUP-1 was saved successfully and verified in the drafts list with the correct vendor and address details."
+        "text": "Verified: draft for DUP-1 (vendor V1) was saved correctly with the new address, and the vendor's original address/name/ID remain unaffected."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Draft successfully created and verified for request_id DUP-1, vendor V1 (Cedar Office), with new address 20 New Street, Newtown, 44444, Exampleland."
+          "reason": "Draft successfully created and verified for request_id DUP-1, vendor V1 (Cedar Office), with new address 20 New Street, Newtown, 44444, Exampleland. Save succeeded on first attempt; no retry needed."
         },
-        "id": "toolu_017BW5J7Xh3FLqrCP7ysQEa5"
+        "id": "toolu_015WA2jEmUB29pdq9ABSYQ1q"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 180
+        "ephemeral_5m_input_tokens": 204
       },
-      "cache_creation_input_tokens": 180,
-      "cache_read_input_tokens": 2404,
+      "cache_creation_input_tokens": 204,
+      "cache_read_input_tokens": 2426,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 167,
+      "output_tokens": 197,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -229,7 +233,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.727
+    "latency_s": 2.135
   },
   {
     "step": 3,
@@ -237,7 +241,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Draft successfully created and verified for request_id DUP-1, vendor V1 (Cedar Office), with new address 20 New Street, Newtown, 44444, Exampleland."
+      "reason": "Draft successfully created and verified for request_id DUP-1, vendor V1 (Cedar Office), with new address 20 New Street, Newtown, 44444, Exampleland. Save succeeded on first attempt; no retry needed."
     },
     "output": {
       "acknowledged": true

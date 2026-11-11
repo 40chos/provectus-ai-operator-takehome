@@ -3,95 +3,84 @@
     {
       "request_id": "R1",
       "status": "draft",
-      "reason": "Draft successfully saved and verified for request R1, vendor V1 (Cedar Office): address updated to 42 Fiction Lane, Demo City, 00123, Exampleland.",
+      "reason": "Address update for vendor V1 (Cedar Office) saved successfully as a draft and verified via read_drafts. New address: 42 Fiction Lane, Demo City, 00123, Exampleland.",
       "save_attempts": 1,
       "had_failure": false,
       "new_drafts": 1,
       "transcript_path": "logs/R1.json",
       "usage": {
         "input_tokens": 8,
-        "output_tokens": 552,
-        "cache_creation_input_tokens": 2472,
-        "cache_read_input_tokens": 6248
+        "output_tokens": 573,
+        "cache_creation_input_tokens": 2474,
+        "cache_read_input_tokens": 6250
       }
     },
     {
       "request_id": "R2",
       "status": "needs-information",
-      "reason": "Vendor name \"Northstar Supplies\" is ambiguous, matching both \"Northstar Supplies East\" (V2) and \"Northstar Supplies West\" (V3). Please provide the exact vendor ID (or full unambiguous name) to proceed with the address update for request R2. No changes have been made to either vendor record.",
+      "reason": "Vendor name \"Northstar Supplies\" is ambiguous - it matches both \"Northstar Supplies East\" (V2) and \"Northstar Supplies West\" (V3). Please provide the exact vendor ID to proceed. No changes have been made to either vendor record.",
       "save_attempts": 0,
       "had_failure": false,
       "new_drafts": 0,
       "transcript_path": "logs/R2.json",
       "usage": {
         "input_tokens": 4,
-        "output_tokens": 410,
-        "cache_creation_input_tokens": 2098,
+        "output_tokens": 418,
+        "cache_creation_input_tokens": 2120,
         "cache_read_input_tokens": 1807
       }
     },
     {
       "request_id": "R3",
       "status": "needs-information",
-      "reason": "Vendor V4 (Maple Parts) resolved successfully, and no duplicate draft exists for request R3. However, the request's postal_code field is empty, and postal code is a required nonempty field for address updates. Please provide a valid postal code before this change can be saved.",
+      "reason": "Vendor V4 (Maple Parts) resolved successfully, and no existing draft was found for request R3. However, the request's postal_code field is empty, and postal code is a required field for address updates. Please supply a valid postal code before this change can be saved.",
       "save_attempts": 0,
       "had_failure": false,
       "new_drafts": 0,
       "transcript_path": "logs/R3.json",
       "usage": {
         "input_tokens": 4,
-        "output_tokens": 430,
-        "cache_creation_input_tokens": 2171,
+        "output_tokens": 405,
+        "cache_creation_input_tokens": 2165,
         "cache_read_input_tokens": 1799
       }
     },
     {
       "request_id": "R4",
       "status": "unresolved",
-      "reason": "Vendor ID \"V999\" does not match any vendor in the portal. Cannot proceed with the address update without a valid vendor identifier. Please verify the vendor ID and resubmit.",
+      "reason": "Vendor ID 'V999' does not match any vendor in the portal. Cannot proceed with address update for an unknown vendor. Please verify the correct vendor ID.",
       "save_attempts": 0,
       "had_failure": false,
       "new_drafts": 0,
       "transcript_path": "logs/R4.json",
       "usage": {
         "input_tokens": 4,
-        "output_tokens": 335,
-        "cache_creation_input_tokens": 2023,
+        "output_tokens": 307,
+        "cache_creation_input_tokens": 2035,
         "cache_read_input_tokens": 1801
       }
     },
     {
       "request_id": "R5",
       "status": "draft",
-      "reason": "Vendor V6 (Birch Goods) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once and succeeded. Verified via read_drafts that draft R5 for V6 contains the correct new address (42 Fiction Lane, Demo City, 00123, Exampleland) without altering vendor identity or original address.",
+      "reason": "Vendor V6 (Birch Goods) resolved unambiguously. All required address fields were present and valid. First save attempt failed due to simulated failure; retried once successfully. Verified via read_drafts that request R5 now has a saved draft with the correct vendor_id and new address, leaving the original address and vendor identity unchanged.",
       "save_attempts": 2,
       "had_failure": true,
       "new_drafts": 1,
       "transcript_path": "logs/R5.json",
       "usage": {
         "input_tokens": 10,
-        "output_tokens": 813,
-        "cache_creation_input_tokens": 2833,
-        "cache_read_input_tokens": 8904
+        "output_tokens": 794,
+        "cache_creation_input_tokens": 2826,
+        "cache_read_input_tokens": 8900
       }
     }
   ],
   "run_totals": {
     "input_tokens": 30,
-    "output_tokens": 2540,
-    "cache_creation_input_tokens": 11597,
-    "cache_read_input_tokens": 20559,
-    "wall_s": 28.454,
-    "cost": {
-      "total_usd": 0.058564,
-      "calls": 15,
-      "cap_usd": 0.2,
-      "tokens": {
-        "input_tokens": 30,
-        "output_tokens": 2540,
-        "cache_creation_input_tokens": 11597,
-        "cache_read_input_tokens": 20559
-      }
-    }
+    "output_tokens": 2497,
+    "cache_creation_input_tokens": 11620,
+    "cache_read_input_tokens": 20557,
+    "wall_s": 28.865
   }
 }

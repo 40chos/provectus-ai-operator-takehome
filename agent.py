@@ -18,7 +18,6 @@ from typing import Literal, Optional
 from anthropic import Anthropic, APIStatusError, RateLimitError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-from cost_tracker import BudgetExceeded, CostTracker
 from portal_client import PortalClient
 
 MODEL = "claude-sonnet-5"
@@ -396,7 +395,6 @@ def run_request(
     portal: PortalClient,
     request: dict,
     logs_dir: Path,
-    cost_tracker: Optional[CostTracker] = None,
 ) -> RequestOutcome:
     request_id = request["request_id"]
     log_label = request.get("label", request_id)
@@ -417,12 +415,6 @@ def run_request(
         transcript_path.write_text(json.dumps(transcript, indent=2))
 
     for step in range(MAX_STEPS):
-        if cost_tracker is not None and cost_tracker.would_exceed():
-            raise BudgetExceeded(
-                f"Hard cost cap (${cost_tracker.cap_usd}) reached after {cost_tracker.calls} calls "
-                f"(${cost_tracker.total_usd:.4f} spent); stopping before the next call, not after."
-            )
-
         t0 = time.monotonic()
         response = _create_with_retry(
             client,
@@ -433,8 +425,6 @@ def run_request(
             cache_control=CACHE_CONTROL,
             messages=messages,
         )
-        if cost_tracker is not None and response.usage:
-            cost_tracker.add(response.usage.model_dump())
         latency_s = round(time.monotonic() - t0, 3)
         transcript.append(
             {

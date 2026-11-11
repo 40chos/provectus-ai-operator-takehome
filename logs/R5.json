@@ -9,7 +9,7 @@
         "input": {
           "request_id": "R5"
         },
-        "id": "toolu_01GemdTn82X75WNhQY1PLvha"
+        "id": "toolu_01DvoWHw4kW8pccKFK9kWeG1"
       },
       {
         "type": "tool_use",
@@ -17,7 +17,7 @@
         "input": {
           "vendor_id_or_name": "V6"
         },
-        "id": "toolu_01CBk1Pv1NfumpBHP68UQdnS"
+        "id": "toolu_012avQe8aSw886URG9JTEsEq"
       }
     ],
     "usage": {
@@ -37,7 +37,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.493
+    "latency_s": 1.624
   },
   {
     "step": 0,
@@ -79,7 +79,7 @@
     "content": [
       {
         "type": "text",
-        "text": "All fields present, vendor resolved, no existing draft. Proceeding to save."
+        "text": "All fields present and valid, vendor resolved, no existing draft. Proceeding to save."
       },
       {
         "type": "tool_use",
@@ -92,7 +92,7 @@
           "postal_code": "00123",
           "country": "Exampleland"
         },
-        "id": "toolu_01Mymqq2FPjJC36Qhfa6ZRoC"
+        "id": "toolu_01HbgyEYoRu4GqUiJYLitRXm"
       }
     ],
     "usage": {
@@ -104,7 +104,7 @@
       "cache_read_input_tokens": 1815,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 209,
+      "output_tokens": 212,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -112,7 +112,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.891
+    "latency_s": 2.037
   },
   {
     "step": 1,
@@ -139,7 +139,7 @@
     "content": [
       {
         "type": "text",
-        "text": "First attempt failed as expected due to the simulated failure switch. Retrying once as permitted."
+        "text": "The first save failed as simulated. Retrying once as allowed."
       },
       {
         "type": "tool_use",
@@ -152,19 +152,19 @@
           "postal_code": "00123",
           "country": "Exampleland"
         },
-        "id": "toolu_01B2rSPbhLzgsLz2TUGm5nh2"
+        "id": "toolu_01CKfAMfqVG19GtsxGC9cVSN"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 258
+        "ephemeral_5m_input_tokens": 261
       },
-      "cache_creation_input_tokens": 258,
+      "cache_creation_input_tokens": 261,
       "cache_read_input_tokens": 2102,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 213,
+      "output_tokens": 203,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -172,7 +172,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.9
+    "latency_s": 1.786
   },
   {
     "step": 2,
@@ -199,22 +199,22 @@
     "content": [
       {
         "type": "text",
-        "text": "Retry succeeded. Now verifying via read_drafts."
+        "text": "Retry succeeded. Now verifying by reading drafts."
       },
       {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01BRkZ2W4tg11mRqScaMqEuU"
+        "id": "toolu_01DWrQ9CpEqjZ1AZTGKGy5Ut"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 267
+        "ephemeral_5m_input_tokens": 257
       },
-      "cache_creation_input_tokens": 267,
-      "cache_read_input_tokens": 2360,
+      "cache_creation_input_tokens": 257,
+      "cache_read_input_tokens": 2363,
       "inference_geo": "global",
       "input_tokens": 2,
       "output_tokens": 49,
@@ -225,7 +225,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 0.847
+    "latency_s": 0.874
   },
   {
     "step": 3,
@@ -264,16 +264,16 @@
     "content": [
       {
         "type": "text",
-        "text": "Draft for R5 confirmed saved correctly with matching address details for vendor V6."
+        "text": "Draft for R5 confirmed saved with correct vendor and address."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor V6 (Birch Goods) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once and succeeded. Verified via read_drafts that draft R5 for V6 contains the correct new address (42 Fiction Lane, Demo City, 00123, Exampleland) without altering vendor identity or original address."
+          "reason": "Vendor V6 (Birch Goods) resolved unambiguously. All required address fields were present and valid. First save attempt failed due to simulated failure; retried once successfully. Verified via read_drafts that request R5 now has a saved draft with the correct vendor_id and new address, leaving the original address and vendor identity unchanged."
         },
-        "id": "toolu_01DAR9Rhbk7987tyBsqu33qj"
+        "id": "toolu_01PBwwuPCtcLu8j5F7jzQd9T"
       }
     ],
     "usage": {
@@ -282,10 +282,10 @@
         "ephemeral_5m_input_tokens": 206
       },
       "cache_creation_input_tokens": 206,
-      "cache_read_input_tokens": 2627,
+      "cache_read_input_tokens": 2620,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 211,
+      "output_tokens": 199,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -293,7 +293,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.146
+    "latency_s": 2.125
   },
   {
     "step": 4,
@@ -301,7 +301,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor V6 (Birch Goods) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once and succeeded. Verified via read_drafts that draft R5 for V6 contains the correct new address (42 Fiction Lane, Demo City, 00123, Exampleland) without altering vendor identity or original address."
+      "reason": "Vendor V6 (Birch Goods) resolved unambiguously. All required address fields were present and valid. First save attempt failed due to simulated failure; retried once successfully. Verified via read_drafts that request R5 now has a saved draft with the correct vendor_id and new address, leaving the original address and vendor identity unchanged."
     },
     "output": {
       "acknowledged": true

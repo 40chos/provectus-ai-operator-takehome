@@ -9,7 +9,7 @@
         "input": {
           "request_id": "X4"
         },
-        "id": "toolu_014kHqDZcpwpAWnCaC3uGLUK"
+        "id": "toolu_019o34uPCC6TAQxbb4UYAGqq"
       },
       {
         "type": "tool_use",
@@ -17,7 +17,7 @@
         "input": {
           "vendor_id_or_name": "V2"
         },
-        "id": "toolu_01NpbJpxTnpJWAQS59jCaqn2"
+        "id": "toolu_01ARM7fen4HKaNwWUVkdQ8jp"
       }
     ],
     "usage": {
@@ -37,7 +37,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.385
+    "latency_s": 1.467
   },
   {
     "step": 0,
@@ -78,10 +78,6 @@
     "role": "assistant",
     "content": [
       {
-        "type": "text",
-        "text": "All checks pass: no existing draft, vendor resolved unambiguously (V2 = Northstar Supplies East), and all required address fields are present. Proceeding to save."
-      },
-      {
         "type": "tool_use",
         "name": "attempt_save",
         "input": {
@@ -92,7 +88,7 @@
           "postal_code": "33333",
           "country": "Exampleland"
         },
-        "id": "toolu_01E6jfg66DQXsMPmh7Rjci6w"
+        "id": "toolu_01RiaGCyXmW9H8n4bQmFJRi6"
       }
     ],
     "usage": {
@@ -104,7 +100,7 @@
       "cache_read_input_tokens": 1996,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 234,
+      "output_tokens": 178,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -112,7 +108,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.234
+    "latency_s": 1.692
   },
   {
     "step": 1,
@@ -139,7 +135,7 @@
     "content": [
       {
         "type": "text",
-        "text": "First attempt failed as expected (simulated failure switch). Retrying once, as permitted."
+        "text": "Save failed as expected (simulated). I'll retry once."
       },
       {
         "type": "tool_use",
@@ -152,19 +148,19 @@
           "postal_code": "33333",
           "country": "Exampleland"
         },
-        "id": "toolu_01Rx9nErFaFZaRm37cjFEZ17"
+        "id": "toolu_01FXGaB8dTAGbbAYS6Gg9tW4"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 283
+        "ephemeral_5m_input_tokens": 227
       },
-      "cache_creation_input_tokens": 283,
+      "cache_creation_input_tokens": 227,
       "cache_read_input_tokens": 2286,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 208,
+      "output_tokens": 198,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -172,7 +168,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.943
+    "latency_s": 1.936
   },
   {
     "step": 2,
@@ -198,26 +194,22 @@
     "role": "assistant",
     "content": [
       {
-        "type": "text",
-        "text": "Retry succeeded. Now verifying by reading drafts."
-      },
-      {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01TGE2MDfabngpy9Y8FvWMX7"
+        "id": "toolu_0114AQw8jFesFMaKCBr46mHS"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 262
+        "ephemeral_5m_input_tokens": 252
       },
-      "cache_creation_input_tokens": 262,
-      "cache_read_input_tokens": 2569,
+      "cache_creation_input_tokens": 252,
+      "cache_read_input_tokens": 2513,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 49,
+      "output_tokens": 28,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -225,7 +217,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 0.756
+    "latency_s": 0.775
   },
   {
     "step": 3,
@@ -274,28 +266,28 @@
     "content": [
       {
         "type": "text",
-        "text": "Verified: the draft for request_id X4 (vendor V2) exists with the correct new address \u2014 line1 \"12 New Street\", city \"Newtown\", postal_code \"33333\", country \"Exampleland\". The original address was not overwritten (it's stored separately), and no other fields were altered."
+        "text": "Draft verified successfully for request X4, vendor V2 (Northstar Supplies East), with the new address correctly saved after one retry following the simulated first-attempt failure."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. No existing draft for request X4. First save attempt failed due to simulated failure switch; retried once per policy and the second attempt succeeded. Verified via read_drafts that the X4 draft now contains the correct new address (12 New Street, Newtown, 33333, Exampleland) without altering vendor ID/name or the original address."
+          "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once and succeeded. Verified via read_drafts that request_id X4 now has a draft with address 12 New Street, Newtown, 33333, Exampleland, vendor_id V2, with original address untouched."
         },
-        "id": "toolu_01GhHbLj4acyN3TsVtVLFLVV"
+        "id": "toolu_01QTxnq2F6fpWtj4Xesboqoz"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 269
+        "ephemeral_5m_input_tokens": 248
       },
-      "cache_creation_input_tokens": 269,
-      "cache_read_input_tokens": 2831,
+      "cache_creation_input_tokens": 248,
+      "cache_read_input_tokens": 2765,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 290,
+      "output_tokens": 238,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -303,7 +295,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.719
+    "latency_s": 2.756
   },
   {
     "step": 4,
@@ -311,7 +303,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. No existing draft for request X4. First save attempt failed due to simulated failure switch; retried once per policy and the second attempt succeeded. Verified via read_drafts that the X4 draft now contains the correct new address (12 New Street, Newtown, 33333, Exampleland) without altering vendor ID/name or the original address."
+      "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once and succeeded. Verified via read_drafts that request_id X4 now has a draft with address 12 New Street, Newtown, 33333, Exampleland, vendor_id V2, with original address untouched."
     },
     "output": {
       "acknowledged": true
