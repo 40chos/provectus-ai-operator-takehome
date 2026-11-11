@@ -106,6 +106,15 @@ without re-spending API budget, a 33-test `pytest` suite was added under
 Run `pytest tests/ -v` from `submission/` -- zero Anthropic API calls, zero
 cost, safe to run as many times as useful.
 
+Two further crash-safety fixes from this pass, not caught by tests (reasoned
+through manually, since they only matter under an actual crash mid-run, which
+isn't worth inducing against the real portal): transcripts are now flushed to
+disk after every step rather than only once at the very end of a request, so
+an exception mid-loop doesn't lose the reasoning trace up to that point; and
+`run.py` now catches a per-request exception, records it as `status: "error"`,
+and continues with the remaining requests, instead of one bad request
+discarding every result already earned in the same batch.
+
 ## Reproduce or replay
 
 1. From `submission/`, with a virtualenv containing `requirements.txt` installed and

@@ -375,6 +375,14 @@ def run_request(
     transcript = []
     final_status = None
     final_reason = None
+    transcript_path = logs_dir / f"{log_label}.json"
+
+    def _flush_transcript():
+        # Written after every step, not only at the end -- if an exception
+        # propagates out of the loop (browser crash, unexpected API error),
+        # whatever reasoning happened up to that point is still on disk for
+        # debugging, instead of being silently lost with the in-progress request.
+        transcript_path.write_text(json.dumps(transcript, indent=2))
 
     for step in range(MAX_STEPS):
         t0 = time.monotonic()
@@ -397,6 +405,7 @@ def run_request(
                 "latency_s": latency_s,
             }
         )
+        _flush_transcript()
 
         messages.append({"role": "assistant", "content": response.content})
 
@@ -428,6 +437,7 @@ def run_request(
                 final_status = block.input.get("status", "failed")
                 final_reason = block.input.get("reason", "")
 
+        _flush_transcript()
         messages.append({"role": "user", "content": tool_results})
 
         if state.finished:
@@ -455,8 +465,7 @@ def run_request(
             final_status = "failed"
             final_reason = f"Step limit ({MAX_STEPS}) reached without calling finish() and no draft was saved."
 
-    transcript_path = logs_dir / f"{log_label}.json"
-    transcript_path.write_text(json.dumps(transcript, indent=2))
+    _flush_transcript()
 
     return RequestOutcome(
         request_id=log_label,

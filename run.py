@@ -60,29 +60,50 @@ def run_all(seed_path: Path, logs_dir: Path) -> list[dict]:
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
-            # Single shared context/page for the whole run.
-            page = browser.new_page()
-            page.goto(URL)
-            portal = PortalClient(page)
-            portal.click_reset()
+            try:
+                # Single shared context/page for the whole run.
+                page = browser.new_page()
+                page.goto(URL)
+                portal = PortalClient(page)
+                portal.click_reset()
 
-            for request in requests:
-                if request.get("simulate") == "fail next save once":
-                    portal.set_fail_switch(True)
+                for request in requests:
+                    if request.get("simulate") == "fail next save once":
+                        portal.set_fail_switch(True)
 
-                outcome = run_request(anthropic_client, portal, request, logs_dir)
-                results.append(
-                    {
-                        "request_id": outcome.request_id,
-                        "status": outcome.status,
-                        "reason": outcome.reason,
-                        "save_attempts": outcome.save_attempts,
-                        "had_failure": outcome.had_failure,
-                        "new_drafts": outcome.new_drafts,
-                        "transcript_path": outcome.transcript_path,
-                    }
-                )
-            browser.close()
+                    label = request.get("label", request.get("request_id", "?"))
+                    try:
+                        outcome = run_request(anthropic_client, portal, request, logs_dir)
+                        results.append(
+                            {
+                                "request_id": outcome.request_id,
+                                "status": outcome.status,
+                                "reason": outcome.reason,
+                                "save_attempts": outcome.save_attempts,
+                                "had_failure": outcome.had_failure,
+                                "new_drafts": outcome.new_drafts,
+                                "transcript_path": outcome.transcript_path,
+                            }
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        # One request crashing (e.g. a non-retryable API error,
+                        # an unexpected Playwright failure) must not take the
+                        # whole batch down -- record it and keep going, so a
+                        # single bad request doesn't erase results already
+                        # earned for every other request in this run.
+                        results.append(
+                            {
+                                "request_id": label,
+                                "status": "error",
+                                "reason": f"{type(exc).__name__}: {exc}",
+                                "save_attempts": None,
+                                "had_failure": None,
+                                "new_drafts": 0,
+                                "transcript_path": str(logs_dir / f"{label}.json"),
+                            }
+                        )
+            finally:
+                browser.close()
     finally:
         server.terminate()
         try:
