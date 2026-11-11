@@ -1,0 +1,77 @@
+{
+  "template": true,
+  "instructions": "Replace template values with exercise-specific records. Add entries for every configuration used, including earlier versions or their Git commits. No credentials.",
+  "categories": {
+    "development_tools_and_models": {
+      "status": "complete",
+      "files": ["requirements.txt"],
+      "notes": "Claude Code (claude-sonnet-5) used interactively as the coding assistant for this entire exercise, in manual/non-auto mode (every diff reviewed before acceptance). No other coding assistant used."
+    },
+    "plugins_and_extensions": {
+      "status": "not-used",
+      "files": [],
+      "notes": "No IDE plugins or extensions beyond Claude Code itself."
+    },
+    "application_models_and_parameters": {
+      "status": "complete",
+      "files": ["agent.py"],
+      "notes": "The application's own model integration (not the dev-time assistant): Anthropic Python SDK 2.8.0, model id 'claude-sonnet-5', max_tokens=1024, tool_choice default (model decides), system prompt in agent.py:SYSTEM_PROMPT. This SDK version's messages.create() does not expose a temperature/top_p parameter (checked via inspect.signature at build time) -- API default behavior used, not a conscious choice to omit it."
+    },
+    "skills": {
+      "status": "not-used",
+      "files": [],
+      "notes": "The starter pack's generate-assignment-data skill was read for guidance on extending seed data but not installed/invoked as a Claude Code skill -- its instructions were followed manually."
+    },
+    "agent_instructions_and_subagents": {
+      "status": "not-used",
+      "files": [],
+      "notes": "No Claude Code subagents or custom agent definitions were used to build this solution. (The solution ITSELF is an agent -- see application_models_and_parameters -- which is a separate thing from a Claude Code subagent.)"
+    },
+    "hooks_and_scripts": {
+      "status": "not-used",
+      "files": [],
+      "notes": "No Claude Code hooks configured for this exercise."
+    },
+    "prompts_and_rules": {
+      "status": "complete",
+      "files": ["agent.py"],
+      "notes": "No global/user-level CLAUDE.md rules affected this exercise beyond default Claude Code behavior. The only exercise-specific prompt is the application's own SYSTEM_PROMPT in agent.py, which embeds the verbatim domain.md rules -- see that file."
+    },
+    "tool_and_mcp_settings": {
+      "status": "not-used",
+      "files": [],
+      "notes": "No MCP servers used. Playwright is used as a plain Python library (sync API), not as an MCP tool."
+    },
+    "permissions_and_environment_names": {
+      "status": "complete",
+      "files": [".env.example"],
+      "notes": "Environment variable MODEL_API_KEY holds the Anthropic API key, supplied by the candidate (not provided by Provectus, per recruiter confirmation). Default Claude Code permission settings used, nothing project-specific configured."
+    }
+  },
+  "configuration_records": [
+    {
+      "name": "Claude Code",
+      "category": "development_tools_and_models",
+      "purpose": "Interactive coding assistant used to write and review all source files in this submission.",
+      "original_path_or_scope": "global Claude Code installation (user machine)",
+      "saved_path": "not-exportable (no project-local Claude Code config was created for this exercise; default global settings used)",
+      "version_or_commit": "model claude-sonnet-5, Claude Code CLI (current as of Nov 2026)",
+      "used_during": "entire build, steps 1-8 of the implementation plan",
+      "status": "used",
+      "redactions": []
+    },
+    {
+      "name": "Application model integration (agent.py)",
+      "category": "application_models_and_parameters",
+      "purpose": "The operator agent's own LLM calls at runtime -- this is what is being assessed, distinct from the dev-time coding assistant above.",
+      "original_path_or_scope": "agent.py",
+      "saved_path": "agent.py (MODEL, TOOLS, SYSTEM_PROMPT constants)",
+      "version_or_commit": "anthropic SDK 2.8.0, model claude-sonnet-5",
+      "used_during": "every run.py invocation",
+      "status": "used",
+      "redactions": ["API key is read from MODEL_API_KEY env var, never hardcoded or logged"]
+    }
+  ],
+  "replay_command": "python score.py --report run-report.json --expected ../client-ai-starter-pack/tasks/computer-use/expected-seed-results.json   (reads logs/*.json transcripts already saved from the real run; no live API key needed to inspect past reasoning, only to produce a NEW run via run.py)",
+  "workflow_example_path": "AI_WORKFLOW.md#one-workflow-example"
+}
