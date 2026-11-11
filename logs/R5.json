@@ -9,7 +9,7 @@
         "input": {
           "request_id": "R5"
         },
-        "id": "toolu_01DvoWHw4kW8pccKFK9kWeG1"
+        "id": "toolu_01MHCp2swgW1SvGzpje6pgev"
       },
       {
         "type": "tool_use",
@@ -17,7 +17,7 @@
         "input": {
           "vendor_id_or_name": "V6"
         },
-        "id": "toolu_012avQe8aSw886URG9JTEsEq"
+        "id": "toolu_01SWadD3EzzY4z98q4pJMhZk"
       }
     ],
     "usage": {
@@ -37,7 +37,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.624
+    "latency_s": 1.454
   },
   {
     "step": 0,
@@ -79,7 +79,7 @@
     "content": [
       {
         "type": "text",
-        "text": "All fields present and valid, vendor resolved, no existing draft. Proceeding to save."
+        "text": "All fields present, vendor resolved, no existing draft. Proceeding to save."
       },
       {
         "type": "tool_use",
@@ -92,7 +92,7 @@
           "postal_code": "00123",
           "country": "Exampleland"
         },
-        "id": "toolu_01HbgyEYoRu4GqUiJYLitRXm"
+        "id": "toolu_01KG7p3XRk67bjCpsb54eQoe"
       }
     ],
     "usage": {
@@ -104,7 +104,7 @@
       "cache_read_input_tokens": 1815,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 212,
+      "output_tokens": 209,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -112,7 +112,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.037
+    "latency_s": 2.038
   },
   {
     "step": 1,
@@ -139,7 +139,7 @@
     "content": [
       {
         "type": "text",
-        "text": "The first save failed as simulated. Retrying once as allowed."
+        "text": "First attempt failed as expected due to simulated failure switch. Retrying once per policy."
       },
       {
         "type": "tool_use",
@@ -152,19 +152,19 @@
           "postal_code": "00123",
           "country": "Exampleland"
         },
-        "id": "toolu_01CKfAMfqVG19GtsxGC9cVSN"
+        "id": "toolu_01Fpw3PqbwcSHX4MfGB49K6b"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 261
+        "ephemeral_5m_input_tokens": 258
       },
-      "cache_creation_input_tokens": 261,
+      "cache_creation_input_tokens": 258,
       "cache_read_input_tokens": 2102,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 203,
+      "output_tokens": 211,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -172,7 +172,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.786
+    "latency_s": 1.994
   },
   {
     "step": 2,
@@ -205,16 +205,16 @@
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01DWrQ9CpEqjZ1AZTGKGy5Ut"
+        "id": "toolu_016ADWkdTmamx1U4ALpwrHP7"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 257
+        "ephemeral_5m_input_tokens": 265
       },
-      "cache_creation_input_tokens": 257,
-      "cache_read_input_tokens": 2363,
+      "cache_creation_input_tokens": 265,
+      "cache_read_input_tokens": 2360,
       "inference_geo": "global",
       "input_tokens": 2,
       "output_tokens": 49,
@@ -225,7 +225,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 0.874
+    "latency_s": 0.973
   },
   {
     "step": 3,
@@ -264,16 +264,16 @@
     "content": [
       {
         "type": "text",
-        "text": "Draft for R5 confirmed saved with correct vendor and address."
+        "text": "Draft for R5/V6 confirmed saved with correct address matching the request."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor V6 (Birch Goods) resolved unambiguously. All required address fields were present and valid. First save attempt failed due to simulated failure; retried once successfully. Verified via read_drafts that request R5 now has a saved draft with the correct vendor_id and new address, leaving the original address and vendor identity unchanged."
+          "reason": "Vendor V6 (Birch Goods) resolved unambiguously. First save attempt failed due to simulated failure; retried once and succeeded. Verified via read_drafts that R5 draft for V6 now has address 42 Fiction Lane, Demo City, 00123, Exampleland, matching the request. Original address was not overwritten (new draft record), vendor ID/name unchanged."
         },
-        "id": "toolu_01PBwwuPCtcLu8j5F7jzQd9T"
+        "id": "toolu_01SDogz9p2f1VeGutTvo1P6P"
       }
     ],
     "usage": {
@@ -282,10 +282,10 @@
         "ephemeral_5m_input_tokens": 206
       },
       "cache_creation_input_tokens": 206,
-      "cache_read_input_tokens": 2620,
+      "cache_read_input_tokens": 2625,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 199,
+      "output_tokens": 222,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -293,7 +293,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.125
+    "latency_s": 2.636
   },
   {
     "step": 4,
@@ -301,7 +301,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor V6 (Birch Goods) resolved unambiguously. All required address fields were present and valid. First save attempt failed due to simulated failure; retried once successfully. Verified via read_drafts that request R5 now has a saved draft with the correct vendor_id and new address, leaving the original address and vendor identity unchanged."
+      "reason": "Vendor V6 (Birch Goods) resolved unambiguously. First save attempt failed due to simulated failure; retried once and succeeded. Verified via read_drafts that R5 draft for V6 now has address 42 Fiction Lane, Demo City, 00123, Exampleland, matching the request. Original address was not overwritten (new draft record), vendor ID/name unchanged."
     },
     "output": {
       "acknowledged": true

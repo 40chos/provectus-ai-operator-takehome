@@ -3,59 +3,59 @@
     {
       "request_id": "X1",
       "status": "draft",
-      "reason": "Vendor 'Juniper' unambiguously matched Juniper Tools (V5). Saved new address draft for request X1 (10 New Street, Newtown, 11111, Exampleland) on first attempt; verified via read_drafts that the draft was persisted correctly with no changes to vendor identity or original address.",
+      "reason": "Vendor 'Juniper' unambiguously resolved to Juniper Tools (V5). Address draft for request X1 saved successfully on first attempt and verified via read_drafts: new address (10 New Street, Newtown, 11111, Exampleland) recorded without altering vendor ID/name or the original address.",
       "save_attempts": 1,
       "had_failure": false,
       "new_drafts": 1,
       "transcript_path": "logs_extended/X1.json",
       "usage": {
         "input_tokens": 8,
-        "output_tokens": 670,
-        "cache_creation_input_tokens": 2600,
-        "cache_read_input_tokens": 6507
+        "output_tokens": 656,
+        "cache_creation_input_tokens": 2589,
+        "cache_read_input_tokens": 6488
       }
     },
     {
       "request_id": "X2",
       "status": "needs-information",
-      "reason": "The request for vendor V5 is missing a required field: 'country' is empty. Per policy, all address fields (line1, city, postal_code, country) must be nonempty before a draft can be saved. No draft was created; please resupply the country value to proceed.",
+      "reason": "Request X2 for vendor V5 is missing the required 'country' field (empty string). Cannot save an address update with a blank required field. Please provide the country value before this request can be processed.",
       "save_attempts": 0,
       "had_failure": false,
       "new_drafts": 0,
       "transcript_path": "logs_extended/X2.json",
       "usage": {
         "input_tokens": 4,
-        "output_tokens": 268,
-        "cache_creation_input_tokens": 1958,
+        "output_tokens": 305,
+        "cache_creation_input_tokens": 1977,
         "cache_read_input_tokens": 1839
       }
     },
     {
       "request_id": "X3a",
       "status": "draft",
-      "reason": "Draft successfully created and verified for request_id DUP-1, vendor V1 (Cedar Office), with new address 20 New Street, Newtown, 44444, Exampleland. Original address left unchanged.",
+      "reason": "Vendor V1 (Cedar Office) resolved unambiguously. No prior draft existed for request_id DUP-1. Saved new address draft (20 New Street, Newtown, 44444, Exampleland) on first attempt and verified it is present in read_drafts output without altering the vendor's original address or identity.",
       "save_attempts": 1,
       "had_failure": false,
       "new_drafts": 1,
       "transcript_path": "logs_extended/X3a.json",
       "usage": {
         "input_tokens": 8,
-        "output_tokens": 592,
+        "output_tokens": 628,
         "cache_creation_input_tokens": 2630,
-        "cache_read_input_tokens": 6414
+        "cache_read_input_tokens": 6424
       }
     },
     {
       "request_id": "X3b",
       "status": "duplicate",
-      "reason": "Request_id DUP-1 already has an existing draft (20 New Street, Newtown, 44444, Exampleland). Per duplicate-prevention rules, the new submission (99 Changed Street) was not saved, and the original draft remains unchanged. new_drafts=0.",
+      "reason": "Request_id DUP-1 already has an existing draft (vendor V1, address: 20 New Street, Newtown, 44444, Exampleland). Per policy, duplicate request_ids must not produce a second draft. No save attempted; original draft left unchanged. new_drafts=0.",
       "save_attempts": 0,
       "had_failure": false,
       "new_drafts": 0,
       "transcript_path": "logs_extended/X3b.json",
       "usage": {
         "input_tokens": 4,
-        "output_tokens": 302,
+        "output_tokens": 319,
         "cache_creation_input_tokens": 2072,
         "cache_read_input_tokens": 1912
       }
@@ -63,24 +63,24 @@
     {
       "request_id": "X4",
       "status": "draft",
-      "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once successfully. Verified via read_drafts that request X4 now has a saved draft with the new address (12 New Street, Newtown, 33333, Exampleland), original address untouched, vendor ID/name unchanged, and no duplicate was created.",
+      "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once and succeeded. Verified via read_drafts that request X4 now has a saved draft with vendor_id V2 and address {12 New Street, Newtown, 33333, Exampleland}, matching the request. No duplicate existed prior to this save, and original address was left untouched.",
       "save_attempts": 2,
       "had_failure": true,
       "new_drafts": 1,
       "transcript_path": "logs_extended/X4.json",
       "usage": {
         "input_tokens": 10,
-        "output_tokens": 833,
-        "cache_creation_input_tokens": 3060,
-        "cache_read_input_tokens": 9598
+        "output_tokens": 818,
+        "cache_creation_input_tokens": 3068,
+        "cache_read_input_tokens": 9628
       }
     }
   ],
   "run_totals": {
     "input_tokens": 34,
-    "output_tokens": 2665,
-    "cache_creation_input_tokens": 12320,
-    "cache_read_input_tokens": 26270,
-    "wall_s": 33.545
+    "output_tokens": 2726,
+    "cache_creation_input_tokens": 12336,
+    "cache_read_input_tokens": 26291,
+    "wall_s": 30.867
   }
 }

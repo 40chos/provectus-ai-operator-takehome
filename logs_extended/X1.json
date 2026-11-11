@@ -5,7 +5,7 @@
     "content": [
       {
         "type": "text",
-        "text": "I'll start by resolving the vendor and checking for existing drafts in parallel, since these are independent checks."
+        "text": "I'll start by resolving the vendor and checking for existing drafts in parallel."
       },
       {
         "type": "tool_use",
@@ -13,7 +13,7 @@
         "input": {
           "vendor_id_or_name": "Juniper"
         },
-        "id": "toolu_01G9ka5EiCmr35FgK8Ke2S9K"
+        "id": "toolu_011bQgeDDXSQ1kJ6g16KQZQe"
       },
       {
         "type": "tool_use",
@@ -21,7 +21,7 @@
         "input": {
           "request_id": "X1"
         },
-        "id": "toolu_016e4FhmMNZvwGNYtttZ6MfP"
+        "id": "toolu_01Vx8PZyx3V8qkJ3ssRf3Emz"
       }
     ],
     "usage": {
@@ -33,7 +33,7 @@
       "cache_read_input_tokens": 0,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 148,
+      "output_tokens": 140,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -41,7 +41,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.767
+    "latency_s": 1.672
   },
   {
     "step": 0,
@@ -83,7 +83,7 @@
     "content": [
       {
         "type": "text",
-        "text": "Vendor resolved unambiguously to \"Juniper Tools\" (V5), and no existing draft for request_id X1. All required address fields are present and nonempty. Proceeding to save."
+        "text": "Vendor resolved unambiguously to \"Juniper Tools\" (V5), and no existing draft for X1. All required address fields are present and nonempty. Proceeding to save."
       },
       {
         "type": "tool_use",
@@ -96,19 +96,19 @@
           "postal_code": "11111",
           "country": "Exampleland"
         },
-        "id": "toolu_0155xCGHC7FqEwvYa8UZ1zby"
+        "id": "toolu_012JjS1Koe3jw2X2wU1kb2i2"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 305
+        "ephemeral_5m_input_tokens": 297
       },
-      "cache_creation_input_tokens": 305,
+      "cache_creation_input_tokens": 297,
       "cache_read_input_tokens": 1868,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 239,
+      "output_tokens": 236,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -116,7 +116,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 4.422
+    "latency_s": 2.097
   },
   {
     "step": 1,
@@ -143,22 +143,22 @@
     "content": [
       {
         "type": "text",
-        "text": "Save succeeded on first attempt. Now verifying by reading drafts."
+        "text": "Save succeeded on first attempt. Now verifying via read_drafts."
       },
       {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01Ex4SwzJMNePGq81v2E6if3"
+        "id": "toolu_01CMZzpZDzBxM44XvVwV2aVm"
       }
     ],
     "usage": {
       "cache_creation": {
         "ephemeral_1h_input_tokens": 0,
-        "ephemeral_5m_input_tokens": 293
+        "ephemeral_5m_input_tokens": 290
       },
-      "cache_creation_input_tokens": 293,
-      "cache_read_input_tokens": 2173,
+      "cache_creation_input_tokens": 290,
+      "cache_read_input_tokens": 2165,
       "inference_geo": "global",
       "input_tokens": 2,
       "output_tokens": 53,
@@ -169,7 +169,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 1.005
+    "latency_s": 0.801
   },
   {
     "step": 2,
@@ -198,16 +198,16 @@
     "content": [
       {
         "type": "text",
-        "text": "The draft for request_id X1 is confirmed saved correctly with vendor V5 (Juniper Tools) and the new address fields, without altering vendor ID/name or the original address record."
+        "text": "Draft verified: request_id X1 is saved with vendor_id V5 and the correct new address, distinct from the original address (no overwrite of vendor name/ID occurred)."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor 'Juniper' unambiguously matched Juniper Tools (V5). Saved new address draft for request X1 (10 New Street, Newtown, 11111, Exampleland) on first attempt; verified via read_drafts that the draft was persisted correctly with no changes to vendor identity or original address."
+          "reason": "Vendor 'Juniper' unambiguously resolved to Juniper Tools (V5). Address draft for request X1 saved successfully on first attempt and verified via read_drafts: new address (10 New Street, Newtown, 11111, Exampleland) recorded without altering vendor ID/name or the original address."
         },
-        "id": "toolu_01E5G5q7hzwSmE9mXw2AgC52"
+        "id": "toolu_01VEsAfWz5anfTm3iXMNf5gr"
       }
     ],
     "usage": {
@@ -216,10 +216,10 @@
         "ephemeral_5m_input_tokens": 134
       },
       "cache_creation_input_tokens": 134,
-      "cache_read_input_tokens": 2466,
+      "cache_read_input_tokens": 2455,
       "inference_geo": "global",
       "input_tokens": 2,
-      "output_tokens": 230,
+      "output_tokens": 227,
       "output_tokens_details": {
         "thinking_tokens": 0
       },
@@ -227,7 +227,7 @@
       "service_tier": "standard",
       "speed": "standard"
     },
-    "latency_s": 2.503
+    "latency_s": 2.674
   },
   {
     "step": 3,
@@ -235,7 +235,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor 'Juniper' unambiguously matched Juniper Tools (V5). Saved new address draft for request X1 (10 New Street, Newtown, 11111, Exampleland) on first attempt; verified via read_drafts that the draft was persisted correctly with no changes to vendor identity or original address."
+      "reason": "Vendor 'Juniper' unambiguously resolved to Juniper Tools (V5). Address draft for request X1 saved successfully on first attempt and verified via read_drafts: new address (10 New Street, Newtown, 11111, Exampleland) recorded without altering vendor ID/name or the original address."
     },
     "output": {
       "acknowledged": true
