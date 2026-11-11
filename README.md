@@ -6,7 +6,7 @@ required fields, unknown vendors, a simulated save failure with retry, and
 request-id idempotency — per `tasks/computer-use/domain.md` in the starter
 pack.
 
-See `AI_WORKFLOW.md` and `manifest.json` for the required AI-configuration
+See `ai-workflow/README.md` and `ai-workflow/manifest.json` for the required AI-configuration
 documentation (separate graded criterion).
 
 ## How to run
@@ -31,7 +31,7 @@ pytest tests/ -v
 Includes a stateful property-based fuzzing test (`tests/test_property_based.py`,
 via Hypothesis) that generates random, including adversarial, sequences of
 controller calls and checks hard invariants hold after every step -- see
-`AI_WORKFLOW.md` for details.
+`ai-workflow/README.md` for details.
 
 Run the original 5 seed requests (this does call the Anthropic API):
 
@@ -99,6 +99,6 @@ human summary.
   checkbox; a genuine two-consecutive-failures scenario isn't reproducible
   live against this portal, so the hard "no 3rd attempt" cap is enforced
   unconditionally in `agent.py`'s controller code rather than being exercised
-  by a live double-failure (see `AI_WORKFLOW.md`'s limitations section).
+  by a live double-failure (see `ai-workflow/README.md`'s limitations section).
 - No other domain rule was reinterpreted; all 4 rules and the worked example
   are embedded verbatim in `agent.py`'s `SYSTEM_PROMPT`.

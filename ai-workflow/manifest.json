@@ -78,5 +78,5 @@
     }
   ],
   "replay_command": "python score.py --report run-report.json --expected ../client-ai-starter-pack/tasks/computer-use/expected-seed-results.json   (reads logs/*.json transcripts already saved from the real run; no live API key needed to inspect past reasoning, only to produce a NEW run via run.py)",
-  "workflow_example_path": "AI_WORKFLOW.md#one-workflow-example"
+  "workflow_example_path": "README.md#one-workflow-example"
 }

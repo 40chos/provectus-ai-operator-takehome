@@ -8,7 +8,7 @@ might -- against the real portal, and checks that a small set of hard
 invariants holds after every single step, no matter what sequence of calls
 got there. This is the kind of fuzzing Anthropic's own engineering blog
 has documented for finding edge cases example-based tests miss (see
-AI_WORKFLOW.md for the reference). It only exercises _execute_tool and
+ai-workflow/README.md for the reference). It only exercises _execute_tool and
 portal_client.py directly -- it never constructs an Anthropic client or
 makes a network call.
 

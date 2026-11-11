@@ -1,7 +1,7 @@
 # AI workflow used during this exercise
 
 (This file follows the starter pack's `ai-workflow/README.template.md` structure. The
-companion `manifest.json` at the repo root is the completed `manifest.template.json`.)
+companion `manifest.json` in this same folder is the completed `manifest.template.json`.)
 
 ## Tools and models
 
