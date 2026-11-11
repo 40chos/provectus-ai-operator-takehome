@@ -1,6 +1,7 @@
 {
   "template": true,
   "instructions": "Replace template values with exercise-specific records. Add entries for every configuration used, including earlier versions or their Git commits. No credentials.",
+  "path_convention": "All 'files'/'saved_path' entries below are relative to the submission repository root (this manifest itself lives in ./ai-workflow/), not relative to this file's own directory.",
   "categories": {
     "development_tools_and_models": {
       "status": "complete",
