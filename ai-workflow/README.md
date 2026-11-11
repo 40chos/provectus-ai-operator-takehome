@@ -193,7 +193,9 @@ few scenarios someone thought of work correctly, it checks that the
 invariant holds no matter what sequence of (possibly malformed) calls
 gets thrown at the controller. It runs entirely against the real local
 portal via the existing Playwright browser fixture; it never constructs
-an Anthropic client.
+an Anthropic client. This brings the full offline suite to **46 tests**
+total (see `ai-workflow/manifest.json`'s testing category for the exact,
+current, authoritative count).
 
 ## Reproduce or replay
 
@@ -240,5 +242,8 @@ step required.
   seed (currently verified stable across 3 consecutive runs of the original 5, and
   once over the extended set); add a genuine multi-failure scenario if the portal
   supported it (it only supports failing one save, so the "max 1 retry" cap is only
-  exercised at the controller-code level, not by a live double-failure); add a small
-  unit-test suite for `portal_client.py` independent of the LLM loop.
+  exercised at the controller-code level, not by a live double-failure); vendor the
+  starter pack's fixtures into this repo and add a CI workflow running the offline
+  test suite on every push (skipped here specifically because the tests currently
+  depend on a sibling directory outside this repo, not because CI itself is
+  unwarranted).
