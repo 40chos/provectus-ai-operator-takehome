@@ -1,13 +1,9 @@
 """Per-request Claude tool-use loop driving the bounded portal actions.
 
-Design principle (see plan doc): the controller REPORTS signals
-(ambiguity, missing fields, unknown vendor, save failure) -- it does not
-pre-decide the outcome. The model reads the report and independently
-decides whether to ask for clarification, retry, or finish. The
-controller only HARD-VETOES actions that would violate a hard invariant
-(more than one retry, resubmitting with the same missing field,
-re-saving over an existing request_id) -- that is a safety backstop,
-not the primary decision path.
+The controller reports signals (ambiguity, missing fields, save failure);
+the model decides what to do about them. The controller only vetoes
+actions that would violate a hard invariant (duplicate request_id, vendor
+mismatch, exceeding the retry cap) as a backstop, not the primary path.
 """
 from __future__ import annotations
 
@@ -28,24 +24,15 @@ MODEL = "claude-sonnet-5"
 MAX_STEPS = 10
 MAX_SAVE_ATTEMPTS = 2  # = "at most one retry" (business rule -- see domain.md rule 4)
 
-# Transport-layer retry for transient API errors (429/529), separate from and
-# not counted against the business-level MAX_SAVE_ATTEMPTS above. 2026
-# production guidance: exponential backoff starting ~1-2s, doubling, capped,
-# plus jitter to avoid thundering-herd on shared-key retries; respect
-# Retry-After when the API supplies one.
+# Transport-layer retry for 429/529, separate from the business-level
+# MAX_SAVE_ATTEMPTS cap -- network hiccups vs. portal save attempts.
 API_MAX_RETRIES = 5
 API_BACKOFF_BASE_S = 1.5
 API_BACKOFF_CAP_S = 30.0
 
-# Caching the static prefix (system prompt + tool definitions) is the
-# single highest-ROI production optimization for a loop like this one,
-# where the same system+tools are resent on every step of every request.
-# Two preconditions kept in mind: (1) SYSTEM_PROMPT below must stay fully
-# static -- no run-specific values (dates, request IDs, etc.) are
-# interpolated into it, which would invalidate the cache on every call;
-# per-request data instead goes only into the first user message. (2) the
-# system prompt must exceed the model's minimum cacheable block size,
-# which it does once the rules text below is included in full.
+# Caches the static system+tools prefix (resent on every loop step).
+# SYSTEM_PROMPT must stay fully static -- no per-run values interpolated
+# into it -- or every call becomes a cache miss.
 CACHE_CONTROL = {"type": "ephemeral"}
 
 DOMAIN_RULES = """\
@@ -86,13 +73,10 @@ Important operating rules:
   more than once.
 """
 
-# --- Tool input schemas: Pydantic models are the SINGLE SOURCE OF TRUTH.
-# The JSON schema sent to Claude (TOOLS, below) is generated FROM these
-# models rather than hand-duplicated, so the two can never silently drift
-# apart. Every tool_use the model sends is also validated against the
-# matching model before _execute_tool touches anything (see run_request) --
-# the provider's schema hint is not a guarantee, only a strong suggestion;
-# production code must still enforce it deterministically on the way in.
+# Pydantic models are the single source of truth for tool schemas: TOOLS
+# (below) is generated from them, and every tool_use is validated against
+# the same model before execution -- the provider's schema is a hint, not
+# a guarantee.
 
 
 class _StrictModel(BaseModel):
@@ -100,11 +84,7 @@ class _StrictModel(BaseModel):
 
 
 def _strip_nonempty(value: str) -> str:
-    """Shared validator: a whitespace-only string must not pass a
-    min_length=1 check as if it were real content -- Pydantic's min_length
-    only counts raw characters, so " " alone would otherwise satisfy it and
-    silently become an empty/degenerate lookup downstream (e.g. an empty
-    vendor-name search matching every vendor as 'ambiguous')."""
+    """Rejects whitespace-only strings -- min_length=1 alone lets " " pass."""
     stripped = value.strip()
     if not stripped:
         raise ValueError("must not be empty or whitespace-only")
@@ -205,22 +185,14 @@ TOOLS = _build_tools()
 
 
 def _create_with_retry(client: Anthropic, **kwargs):
-    """Transport-layer retry for 429 (rate limit) / 529 (overloaded) errors.
-
-    This is independent of and not counted against the domain-level
-    MAX_SAVE_ATTEMPTS retry cap -- that's a business rule about how many
-    times the *portal* may be asked to save; this is infrastructure
-    resilience for a *transient API hiccup*, and conflating the two would
-    make the business logic depend on network conditions.
-    """
+    """Retries 429/529 errors with exponential backoff + jitter."""
     last_exc: Exception = RuntimeError("unreachable: API_MAX_RETRIES must be >= 1")
     for attempt in range(API_MAX_RETRIES):
         try:
             return client.messages.create(**kwargs)
         except RateLimitError as e:
             last_exc = e
-            # The SDK does not expose a parsed `retry_after` attribute; the
-            # Retry-After header must be read off the raw HTTP response.
+            # SDK has no parsed retry_after attribute -- read the raw header.
             retry_after = None
             response = getattr(e, "response", None)
             if response is not None:
@@ -260,30 +232,21 @@ class _ControllerState:
     had_failure: bool = False
     finished: bool = False
     drafts_before: list = field(default_factory=list)
-    # Cumulative set of every missing-fields combination already reported,
-    # not just the most recent one -- a model alternating between two
-    # different incomplete submissions (e.g. missing country, then missing
-    # city, then missing country again) must still be caught, not just an
-    # immediate verbatim repeat.
+    # Every missing-fields combination already reported (not just the most
+    # recent) -- catches a model alternating between incomplete submissions.
     seen_missing_fields: set = field(default_factory=set)
-    # The vendor_id resolved via resolve_vendor for THIS request, so a save
-    # can't silently target a different vendor than what was looked up.
+    # Vendor resolved via resolve_vendor for this request; a save can't
+    # silently target a different vendor than what was looked up.
     resolved_vendor_id: Optional[str] = None
-    # Set by _execute_tool's "finish" branch only after Pydantic validation
-    # has already guaranteed `status` is one of FinishStatus's literal
-    # values -- run_request no longer reads these off the raw, unvalidated
-    # block.input itself.
+    # Set only by a validated "finish" call -- status is already guaranteed
+    # to be one of FinishStatus's literal values by then.
     final_status: Optional[str] = None
     final_reason: Optional[str] = None
 
 
 def _resolve_vendor(client: PortalClient, vendor_id_or_name: str) -> dict:
-    # Callers pass ResolveVendorInput.vendor_id_or_name, already guaranteed
-    # non-empty and whitespace-stripped by that model's validator -- no
-    # need to re-strip here, and this keeps the exact-ID and by-name
-    # branches consistently normalized (a prior version only stripped in
-    # the by-name branch, so " V1 " matched nothing by ID but could have
-    # spuriously matched by substring in the name branch).
+    # Already non-empty and whitespace-stripped by ResolveVendorInput's
+    # validator -- no need to re-strip here.
     vendors = client.list_vendors()
     by_id = [v for v in vendors if v["vendor_id"] == vendor_id_or_name]
     if by_id:
@@ -317,15 +280,10 @@ def _execute_tool(
     client: PortalClient,
     state: _ControllerState,
 ) -> ToolExecutionResult:
-    # Deterministic gate #1: the provider's JSON-schema hint is not a
-    # guarantee. A model can still send a missing/extra/wrong-typed field;
-    # validate against the same Pydantic model the schema was generated
-    # from before any tool logic runs, so a malformed call degrades into a
-    # correctable error instead of a bare KeyError/TypeError crashing the
-    # whole request.
+    # Validate before any tool logic runs, so a malformed call degrades
+    # into a correctable error instead of crashing with KeyError/TypeError.
     model_cls = TOOL_INPUT_MODELS.get(name)
     if model_cls is None:
-        # The model invented a tool name outside TOOLS -- recoverable, not fatal.
         return ToolExecutionResult({"error": f"Unknown tool {name!r}; use only the tools provided."}, is_error=True)
 
     try:
@@ -343,9 +301,7 @@ def _execute_tool(
         result = _resolve_vendor(client, validated.vendor_id_or_name)
         if "match" in result:
             state.resolved_vendor_id = result["match"]["vendor_id"]
-        # ambiguous/not_found are legitimate domain outcomes the model must
-        # reason about (the system prompt tells it to expect and act on
-        # them) -- not tool-call errors, so is_error stays False.
+        # ambiguous/not_found are legitimate outcomes to reason about, not errors.
         return ToolExecutionResult(result)
 
     if name == "check_existing_draft":
@@ -360,27 +316,18 @@ def _execute_tool(
         missing = _missing_fields(validated.line1, validated.city, validated.postal_code, validated.country)
         if missing:
             key = frozenset(missing)
-            # Hard veto: refusing to re-submit with ANY missing-fields
-            # combination already reported this request (not just the
-            # immediately previous one) -- a model alternating between two
-            # different incomplete submissions must still be capped, not
-            # only a verbatim immediate repeat.
+            # Veto any missing-fields combination already reported for this
+            # request, not just the immediately previous one.
             if key in state.seen_missing_fields:
                 return ToolExecutionResult(
                     {"reason": "Already reported a missing-fields problem for this request; call finish instead of retrying."},
                     is_error=True,
                 )
             state.seen_missing_fields.add(key)
-            # Caused by the model's own incomplete call -- an error the
-            # model must correct, per Anthropic's tool-error convention.
             return ToolExecutionResult({"missing_fields": missing}, is_error=True)
 
-        # Hard veto: this request_id already has a saved draft. Enforced in
-        # the controller itself (not only via the check_existing_draft tool
-        # the model is instructed to call first) so duplicate protection
-        # does not depend on the model's own discipline -- domain rule 3
-        # ("the same request ID must not produce duplicate drafts") is a
-        # hard invariant, not a suggestion.
+        # Enforced here, not only via check_existing_draft, so duplicate
+        # protection doesn't depend on the model calling the right tool first.
         existing = [d for d in client.read_drafts() if d["request_id"] == validated.request_id]
         if existing:
             return ToolExecutionResult(
@@ -396,9 +343,7 @@ def _execute_tool(
                 {"reason": "Maximum save attempts (1 retry) already used. Call finish."}, is_error=True
             )
 
-        # Hard veto: the vendor_id being saved must be the one this request
-        # actually resolved via resolve_vendor -- a model can't look up
-        # vendor A and then save against vendor B.
+        # The vendor being saved must be the one this request resolved.
         if state.resolved_vendor_id is not None and validated.vendor_id != state.resolved_vendor_id:
             return ToolExecutionResult(
                 {
@@ -410,24 +355,18 @@ def _execute_tool(
                 is_error=True,
             )
 
-        # Controller only resolves vendor_id -> select on the page; it does not
-        # decide ambiguity here (that already happened via resolve_vendor).
         addr = client.select_vendor(validated.vendor_id)
         if addr is None:
-            # Deliberately asymmetric with resolve_vendor's not_found (which
-            # is is_error=False, a legitimate lookup outcome): reaching here
-            # means the model already attempted a SAVE with a vendor_id that
-            # doesn't exist -- either it skipped resolve_vendor and guessed,
-            # or ignored resolve_vendor's own not_found report. Either way
-            # this is a misuse of attempt_save, not a neutral lookup result.
+            # Asymmetric with resolve_vendor's not_found (is_error=False):
+            # here the model already attempted a save with a bad vendor_id,
+            # which is a misuse, not a neutral lookup.
             return ToolExecutionResult(
                 {"reason": "vendor_id does not exist; call finish(unresolved)."}, is_error=True
             )
 
         if state.resolved_vendor_id is None:
-            # Model skipped resolve_vendor entirely but happened to pass a
-            # valid id -- record it now so a later attempt can't switch
-            # vendors mid-request either.
+            # Model skipped resolve_vendor but passed a valid id -- record
+            # it so a later attempt can't switch vendors mid-request.
             state.resolved_vendor_id = validated.vendor_id
 
         state.save_attempts += 1
@@ -437,10 +376,7 @@ def _execute_tool(
         failed = "failure" in status_text.lower() or "already exists" in status_text.lower()
         if "failure" in status_text.lower():
             state.had_failure = True
-        # The tool call itself succeeded -- it correctly executed a save
-        # attempt and is truthfully reporting the portal's business-level
-        # outcome. A business failure (simulated save failure) is NOT a
-        # tool-call error: is_error stays False either way.
+        # A business-level save failure is not a tool-call error.
         return ToolExecutionResult(
             {"status_text": status_text, "attempt_number": state.save_attempts, "looked_like_failure": failed}
         )
@@ -474,10 +410,8 @@ def run_request(
     transcript_path = logs_dir / f"{log_label}.json"
 
     def _flush_transcript():
-        # Written after every step, not only at the end -- if an exception
-        # propagates out of the loop (browser crash, unexpected API error),
-        # whatever reasoning happened up to that point is still on disk for
-        # debugging, instead of being silently lost with the in-progress request.
+        # Written after every step, not just at the end, so a mid-loop
+        # crash doesn't lose the reasoning trace already produced.
         transcript_path.write_text(json.dumps(transcript, indent=2))
 
     for step in range(MAX_STEPS):
@@ -550,14 +484,9 @@ def run_request(
     final_status = state.final_status
     final_reason = state.final_reason
     if final_status is None:
-        # Step budget exhausted without an explicit finish() call. Don't
-        # blindly report "failed" -- check what the portal actually holds,
-        # since a save can genuinely have succeeded and been verified in an
-        # earlier step, with the model simply not reaching finish() in time
-        # (e.g. it spent its last step re-verifying). Scoring on a false
-        # "failed" when a correct draft exists would be worse than scoring
-        # on an honest "step-limit-reached" outcome that still reports the
-        # true new_drafts count.
+        # Step budget exhausted without finish() -- check actual portal
+        # state rather than blindly reporting "failed" when a save
+        # genuinely succeeded earlier in the loop.
         if new_drafts > 0:
             final_status = "draft"
             final_reason = (
@@ -568,11 +497,7 @@ def run_request(
             final_status = "failed"
             final_reason = f"Step limit ({MAX_STEPS}) reached without calling finish() and no draft was saved."
 
-    # final_reason is only still None here if state.final_status were set
-    # without state.final_reason, which _execute_tool's "finish" branch
-    # never does (both are always set together from the same validated
-    # FinishInput) -- this assert documents and enforces that invariant.
-    assert final_reason is not None
+    assert final_reason is not None  # always set together with final_status
     _flush_transcript()
 
     total_usage = {"input_tokens": 0, "output_tokens": 0, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}

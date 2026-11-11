@@ -14,26 +14,15 @@ from playwright.sync_api import Page
 
 
 def _sanitize(text: str) -> str:
-    """Strip characters commonly used for indirect prompt injection (zero-width
-    joiners, other invisible/control chars) before any page-derived text is
-    passed into the model's context. This portal's data is fully fictional and
-    static, so the risk here is near-zero -- but a real production UI-operator
-    agent reads content it does not control (vendor names, status messages),
-    and that boundary should be enforced unconditionally, not only when a
-    concrete attack is anticipated."""
+    """Strips invisible/control chars from page-derived text before it
+    reaches the model's context (defense against indirect prompt injection)."""
     if text is None:
         return text
     return "".join(ch for ch in text if ch.isprintable() or ch in "\n\t")
 
 
 def _sanitize_value(value):
-    """Recursively applies _sanitize to every string leaf of a JSON-shaped
-    value (dict/list/str), so every page-derived payload reaching the model
-    is covered -- not just the vendor list and status line. Address dicts
-    and saved-draft records are typed into the page by (in this exercise,
-    fictional) requests and echoed straight back through read_drafts()/
-    select_vendor(); the sanitization boundary must apply there too, not
-    only at the two places an earlier pass happened to add it first."""
+    """Recursively applies _sanitize to every string leaf of a dict/list."""
     if isinstance(value, str):
         return _sanitize(value)
     if isinstance(value, list):
@@ -51,11 +40,8 @@ class Vendor:
 
 
 class PortalClient:
-    # The page is fully local/static with zero network latency -- Playwright's
-    # 30s default would only mask a genuine hang (e.g. a selector typo)
-    # behind a long wait. A short fail-fast timeout is appropriate for this
-    # specific fixture; it would be too aggressive against a real
-    # network-backed production UI.
+    # Short fail-fast timeout: this page is local/static with zero network
+    # latency, so Playwright's 30s default would only mask a genuine hang.
     DEFAULT_TIMEOUT_MS = 5000
 
     def __init__(self, page: Page):
@@ -89,11 +75,7 @@ class PortalClient:
         if vendor_id not in [v.vendor_id for v in self._vendors]:
             return None
         self.page.select_option("#vendor", vendor_id)
-        # Safe to read #original immediately: portal.html's onchange handler
-        # is plain synchronous JS (no setTimeout/promise), so by the time
-        # select_option()'s event dispatch returns, the DOM mutation has
-        # already happened. This would need an explicit wait if the fixture
-        # ever simulated async latency here.
+        # Safe to read immediately: onchange is plain sync JS, no async latency.
         original_text = self.page.inner_text("#original")
         try:
             original = json.loads(original_text)
@@ -124,9 +106,7 @@ class PortalClient:
         self.page.fill("#postal_code", postal_code)
         self.page.fill("#country", country)
         self.page.click("button:has-text('Save draft')")
-        # Same synchronous-handler invariant as select_vendor above: the
-        # form's onsubmit is plain sync JS, so #status is already updated by
-        # the time .click() returns -- no wait_for_function needed here.
+        # Same sync-handler invariant as select_vendor above.
         return _sanitize(self.page.inner_text("#status"))
 
     def click_reset(self) -> None:
