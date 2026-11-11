@@ -9,7 +9,15 @@
         "input": {
           "vendor_id_or_name": "Northstar Supplies"
         },
-        "id": "toolu_01NWWtdEL1LeypWPZo3NnShq"
+        "id": "toolu_01NZWFAWRrXwbiqKn2YZUDtW"
+      },
+      {
+        "type": "tool_use",
+        "name": "check_existing_draft",
+        "input": {
+          "request_id": "R2"
+        },
+        "id": "toolu_01QcpY2B3KpippQv3swbcUnZ"
       }
     ]
   },
@@ -35,21 +43,33 @@
     }
   },
   {
+    "step": 0,
+    "role": "tool_result",
+    "tool": "check_existing_draft",
+    "input": {
+      "request_id": "R2"
+    },
+    "output": {
+      "exists": false,
+      "draft": null
+    }
+  },
+  {
     "step": 1,
     "role": "assistant",
     "content": [
       {
         "type": "text",
-        "text": "The vendor name \"Northstar Supplies\" is ambiguous \u2014 it matches both \"Northstar Supplies East\" (V2) and \"Northstar Supplies West\" (V3). Per the rules, I cannot guess which one is intended, so I will not proceed with any save and will request clarification instead."
+        "text": "The vendor name \"Northstar Supplies\" is ambiguous \u2014 it matches both \"Northstar Supplies East\" (V2) and \"Northstar Supplies West\" (V3). Per policy, I cannot guess which one is intended, so I will not proceed with a save and will leave both records unchanged."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "needs-information",
-          "reason": "Vendor name 'Northstar Supplies' is ambiguous, matching both 'Northstar Supplies East' (V2) and 'Northstar Supplies West' (V3). Please provide the exact vendor_id to proceed. No changes have been made to either record."
+          "reason": "Vendor name \"Northstar Supplies\" is ambiguous, matching both \"Northstar Supplies East\" (V2) and \"Northstar Supplies West\" (V3). Please provide the exact vendor ID to proceed. No changes have been made to either record."
         },
-        "id": "toolu_01SnjRri73YbcaKbaedUdrzU"
+        "id": "toolu_01Nrv2g95YzybyAo8xkuN7Pc"
       }
     ]
   },
@@ -59,7 +79,7 @@
     "tool": "finish",
     "input": {
       "status": "needs-information",
-      "reason": "Vendor name 'Northstar Supplies' is ambiguous, matching both 'Northstar Supplies East' (V2) and 'Northstar Supplies West' (V3). Please provide the exact vendor_id to proceed. No changes have been made to either record."
+      "reason": "Vendor name \"Northstar Supplies\" is ambiguous, matching both \"Northstar Supplies East\" (V2) and \"Northstar Supplies West\" (V3). Please provide the exact vendor ID to proceed. No changes have been made to either record."
     },
     "output": {
       "acknowledged": true

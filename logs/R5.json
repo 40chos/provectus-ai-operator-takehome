@@ -5,21 +5,33 @@
     "content": [
       {
         "type": "tool_use",
-        "name": "resolve_vendor",
-        "input": {
-          "vendor_id_or_name": "V6"
-        },
-        "id": "toolu_01Qu3ub9oxdP5eAWAArgePzj"
-      },
-      {
-        "type": "tool_use",
         "name": "check_existing_draft",
         "input": {
           "request_id": "R5"
         },
-        "id": "toolu_01UVrSMaX4fxdFncS2Prxb9J"
+        "id": "toolu_01HjpBytSkSz6BAXWTSERqHc"
+      },
+      {
+        "type": "tool_use",
+        "name": "resolve_vendor",
+        "input": {
+          "vendor_id_or_name": "V6"
+        },
+        "id": "toolu_01WZrXCCVGCyCNHug4uCUe8x"
       }
     ]
+  },
+  {
+    "step": 0,
+    "role": "tool_result",
+    "tool": "check_existing_draft",
+    "input": {
+      "request_id": "R5"
+    },
+    "output": {
+      "exists": false,
+      "draft": null
+    }
   },
   {
     "step": 0,
@@ -42,24 +54,12 @@
     }
   },
   {
-    "step": 0,
-    "role": "tool_result",
-    "tool": "check_existing_draft",
-    "input": {
-      "request_id": "R5"
-    },
-    "output": {
-      "exists": false,
-      "draft": null
-    }
-  },
-  {
     "step": 1,
     "role": "assistant",
     "content": [
       {
         "type": "text",
-        "text": "All fields present and valid. Proceeding to save the draft."
+        "text": "All fields present, vendor resolved, no existing draft. Proceeding to save."
       },
       {
         "type": "tool_use",
@@ -72,7 +72,7 @@
           "postal_code": "00123",
           "country": "Exampleland"
         },
-        "id": "toolu_01Lf7fTMmLrzyNspkvFN7kFX"
+        "id": "toolu_01Lh9YKwaTisn4dBKcMYFMFi"
       }
     ]
   },
@@ -100,7 +100,7 @@
     "content": [
       {
         "type": "text",
-        "text": "The first attempt failed (simulated). Retrying once as allowed."
+        "text": "The first attempt failed as expected due to the simulated failure switch. I'll retry once."
       },
       {
         "type": "tool_use",
@@ -113,7 +113,7 @@
           "postal_code": "00123",
           "country": "Exampleland"
         },
-        "id": "toolu_0177mGhybaZbSc4Ah5nEiczY"
+        "id": "toolu_01LD9oqf7n6pKzWCSVppeLTm"
       }
     ]
   },
@@ -141,13 +141,13 @@
     "content": [
       {
         "type": "text",
-        "text": "The retry reported success. Now verifying by reading drafts."
+        "text": "Retry succeeded. Now verifying by reading drafts."
       },
       {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01D1t64HseXJUXcL4ziE1arW"
+        "id": "toolu_019FKR8QTWZNggEU1mpdBUHJ"
       }
     ]
   },
@@ -187,16 +187,16 @@
     "content": [
       {
         "type": "text",
-        "text": "The draft for request R5 (vendor V6) is confirmed saved with the correct address."
+        "text": "The draft for R5 (vendor V6, Birch Goods) was successfully saved with the correct address after retrying once following the simulated failure. Verification confirms the draft exists with the expected values."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor V6 (Birch Goods) resolved unambiguously. First save attempt failed due to simulated failure; retried once successfully. Verified via read_drafts that request R5 draft now exists with the new address (42 Fiction Lane, Demo City, 00123, Exampleland) while leaving original address and vendor identity untouched."
+          "reason": "Draft successfully saved for request R5 (vendor V6, Birch Goods) with address 42 Fiction Lane, Demo City, 00123, Exampleland. First save attempt failed due to simulated failure; retry succeeded and was verified via read_drafts."
         },
-        "id": "toolu_01PXn3a1hssyWdZy8xstH31A"
+        "id": "toolu_01764S7nRWKRAqcrya62JGDX"
       }
     ]
   },
@@ -206,7 +206,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor V6 (Birch Goods) resolved unambiguously. First save attempt failed due to simulated failure; retried once successfully. Verified via read_drafts that request R5 draft now exists with the new address (42 Fiction Lane, Demo City, 00123, Exampleland) while leaving original address and vendor identity untouched."
+      "reason": "Draft successfully saved for request R5 (vendor V6, Birch Goods) with address 42 Fiction Lane, Demo City, 00123, Exampleland. First save attempt failed due to simulated failure; retry succeeded and was verified via read_drafts."
     },
     "output": {
       "acknowledged": true

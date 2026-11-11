@@ -5,7 +5,7 @@
     "content": [
       {
         "type": "text",
-        "text": "I'll start by checking for an existing draft and resolving the vendor in parallel."
+        "text": "I'll start by checking if a draft already exists for this request, and resolve the vendor name."
       },
       {
         "type": "tool_use",
@@ -13,7 +13,7 @@
         "input": {
           "request_id": "X1"
         },
-        "id": "toolu_01QAwAaSS4os5wcaQTY5dpar"
+        "id": "toolu_01RLw7E8gFtfDFGKzeQ1LnKV"
       },
       {
         "type": "tool_use",
@@ -21,7 +21,7 @@
         "input": {
           "vendor_id_or_name": "Juniper"
         },
-        "id": "toolu_01ASDsgc3XupJjU6Xw6nkT5w"
+        "id": "toolu_01Qa5GWpuZn49fkHcHYX1qYf"
       }
     ]
   },
@@ -63,7 +63,7 @@
     "content": [
       {
         "type": "text",
-        "text": "No existing draft, and vendor resolved unambiguously to V5 (Juniper Tools). All required address fields are present. Proceeding to save."
+        "text": "No existing draft, and the vendor resolved unambiguously to \"Juniper Tools\" (V5). All required address fields are present and nonempty. I'll proceed to save the draft."
       },
       {
         "type": "tool_use",
@@ -76,7 +76,7 @@
           "postal_code": "11111",
           "country": "Exampleland"
         },
-        "id": "toolu_01Gkd2XtcCjikcd893mHSmiM"
+        "id": "toolu_01VxnfxB6ig3bKtKTDdrSREP"
       }
     ]
   },
@@ -104,13 +104,13 @@
     "content": [
       {
         "type": "text",
-        "text": "Save reported success. Let me verify by reading the drafts."
+        "text": "The save appears successful. Let me verify by reading the drafts."
       },
       {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01FXHzSPsidurWupSkUNrL5r"
+        "id": "toolu_01RKZePjacMeoG86BZHnjqZU"
       }
     ]
   },
@@ -140,16 +140,16 @@
     "content": [
       {
         "type": "text",
-        "text": "The draft is confirmed saved correctly for request X1, vendor V5 (Juniper Tools), with the new address matching what was requested."
+        "text": "The draft for request X1 is confirmed saved with the correct vendor (V5 - Juniper Tools) and the new address details. No duplicates, vendor name/ID unchanged, original address not overwritten (it's a separate draft record)."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor 'Juniper' unambiguously resolved to V5 (Juniper Tools). Address draft saved and verified: 10 New Street, Newtown, 11111, Exampleland."
+          "reason": "Vendor 'Juniper' unambiguously resolved to Juniper Tools (V5). Draft saved successfully on first attempt and verified via read_drafts: address updated to 10 New Street, Newtown, 11111, Exampleland. No duplicate existed for request_id X1."
         },
-        "id": "toolu_01KZ6Nd76TB9UP3CWAYagBpL"
+        "id": "toolu_018298xSur2yFEeukRwoWjZB"
       }
     ]
   },
@@ -159,7 +159,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor 'Juniper' unambiguously resolved to V5 (Juniper Tools). Address draft saved and verified: 10 New Street, Newtown, 11111, Exampleland."
+      "reason": "Vendor 'Juniper' unambiguously resolved to Juniper Tools (V5). Draft saved successfully on first attempt and verified via read_drafts: address updated to 10 New Street, Newtown, 11111, Exampleland. No duplicate existed for request_id X1."
     },
     "output": {
       "acknowledged": true

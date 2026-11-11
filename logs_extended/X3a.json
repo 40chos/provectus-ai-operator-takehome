@@ -9,7 +9,7 @@
         "input": {
           "request_id": "DUP-1"
         },
-        "id": "toolu_01X8BVV8Rv1pJnVegLDrcwqH"
+        "id": "toolu_01W7o18u9wBHLmpEdh4EszcK"
       },
       {
         "type": "tool_use",
@@ -17,7 +17,7 @@
         "input": {
           "vendor_id_or_name": "V1"
         },
-        "id": "toolu_017s4u34YiThcDCWeK4C2z4Y"
+        "id": "toolu_01BX6FKNFuNX3UGXrdkWopcV"
       }
     ]
   },
@@ -59,7 +59,7 @@
     "content": [
       {
         "type": "text",
-        "text": "All fields are present and vendor resolved uniquely. Proceeding to save the draft."
+        "text": "No existing draft for DUP-1, and vendor V1 (Cedar Office) resolves unambiguously. All required address fields are present and nonempty. Proceeding to save."
       },
       {
         "type": "tool_use",
@@ -72,7 +72,7 @@
           "postal_code": "44444",
           "country": "Exampleland"
         },
-        "id": "toolu_01X3ykww4LBFj6uh2JQSv64n"
+        "id": "toolu_016EJueqPsJwVUmdYr3WCCCK"
       }
     ]
   },
@@ -100,13 +100,13 @@
     "content": [
       {
         "type": "text",
-        "text": "The save succeeded on the first attempt. Now verifying by reading drafts."
+        "text": "The save reported success. Let me verify by reading the drafts."
       },
       {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_012QTFyHWSBem71tqvrzL4T2"
+        "id": "toolu_011pwfqEpDZLDwxu26QoEzWw"
       }
     ]
   },
@@ -146,7 +146,7 @@
     "content": [
       {
         "type": "text",
-        "text": "The draft for request_id DUP-1 was successfully saved and verified, with the correct vendor (V1 - Cedar Office) and address details matching the request."
+        "text": "The draft for DUP-1 is confirmed saved with the correct vendor and address details."
       },
       {
         "type": "tool_use",
@@ -155,7 +155,7 @@
           "status": "draft",
           "reason": "Draft successfully created and verified for request_id DUP-1, vendor V1 (Cedar Office), with new address: 20 New Street, Newtown, 44444, Exampleland."
         },
-        "id": "toolu_011jJXBUAZcRsqNzP5g6LYFM"
+        "id": "toolu_01TwBYMv16gracDJ33BQe6oG"
       }
     ]
   },

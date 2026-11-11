@@ -9,7 +9,7 @@
         "input": {
           "request_id": "DUP-1"
         },
-        "id": "toolu_01UgJdCJ3kWSHpriFpW1361i"
+        "id": "toolu_01JE6BXPu7XFVFy19bTS7tuq"
       }
     ]
   },
@@ -40,16 +40,16 @@
     "content": [
       {
         "type": "text",
-        "text": "A draft already exists for request_id \"DUP-1\" (vendor V1, original address from X3a). Per the rules, I must not create a second draft for the same request_id \u2014 I'll leave the existing draft untouched and report this as a duplicate."
+        "text": "A draft already exists for request_id \"DUP-1\". Per the rules, I must not create a duplicate save and should leave the existing draft untouched."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "duplicate",
-          "reason": "A draft for request_id DUP-1 already exists (vendor V1, address: 20 New Street, Newtown, 44444, Exampleland). Per policy, the same request_id must not produce a duplicate draft. No new draft was created; the original draft remains unchanged."
+          "reason": "A draft for request_id DUP-1 already exists (vendor V1, address: 20 New Street, Newtown, 44444, Exampleland). Per policy, resubmission with a different address is not applied; the original draft remains unchanged. No new draft created."
         },
-        "id": "toolu_014UdGE7NDpzTfnXGpx3hekh"
+        "id": "toolu_01JniwJfpZNG9iN4WkSSsmnc"
       }
     ]
   },
@@ -59,7 +59,7 @@
     "tool": "finish",
     "input": {
       "status": "duplicate",
-      "reason": "A draft for request_id DUP-1 already exists (vendor V1, address: 20 New Street, Newtown, 44444, Exampleland). Per policy, the same request_id must not produce a duplicate draft. No new draft was created; the original draft remains unchanged."
+      "reason": "A draft for request_id DUP-1 already exists (vendor V1, address: 20 New Street, Newtown, 44444, Exampleland). Per policy, resubmission with a different address is not applied; the original draft remains unchanged. No new draft created."
     },
     "output": {
       "acknowledged": true

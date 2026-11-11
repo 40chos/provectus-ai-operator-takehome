@@ -9,7 +9,7 @@
         "input": {
           "request_id": "X4"
         },
-        "id": "toolu_012EdmZWdEUHKCK8LUHC4UrV"
+        "id": "toolu_01FKRzUC3gQhbUk7QY6ad1Jv"
       },
       {
         "type": "tool_use",
@@ -17,7 +17,7 @@
         "input": {
           "vendor_id_or_name": "V2"
         },
-        "id": "toolu_011pKFiJJuy7Tx6NtakDjZvW"
+        "id": "toolu_015dq14EMrkAXov17PAJ21LP"
       }
     ]
   },
@@ -59,7 +59,7 @@
     "content": [
       {
         "type": "text",
-        "text": "All required fields are present and valid. Proceeding to save."
+        "text": "All fields present and valid. Proceeding to save."
       },
       {
         "type": "tool_use",
@@ -72,7 +72,7 @@
           "postal_code": "33333",
           "country": "Exampleland"
         },
-        "id": "toolu_01QhS9qkxkJqCgd1RiMD7w94"
+        "id": "toolu_01TtMbDerhzEfq8K6fACSdAg"
       }
     ]
   },
@@ -113,7 +113,7 @@
           "postal_code": "33333",
           "country": "Exampleland"
         },
-        "id": "toolu_01XFUqVoA8UUeB5u4YfzQCQH"
+        "id": "toolu_01L8pZnQ6fKPbwGNhEywHQ52"
       }
     ]
   },
@@ -141,13 +141,13 @@
     "content": [
       {
         "type": "text",
-        "text": "The retry reports success. Verifying by reading drafts."
+        "text": "The retry succeeded. Now verifying by reading drafts."
       },
       {
         "type": "tool_use",
         "name": "read_drafts",
         "input": {},
-        "id": "toolu_01NipV5phWvA1FtqSJHnqdAu"
+        "id": "toolu_01URVCNTp9XEZd4vxU7uRtpY"
       }
     ]
   },
@@ -197,16 +197,16 @@
     "content": [
       {
         "type": "text",
-        "text": "The draft for request_id X4 is confirmed saved with the correct vendor (V2) and address details."
+        "text": "The draft for request X4 (vendor V2, Northstar Supplies East) was successfully saved after one retry, with the correct new address, and verified in the drafts list."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "draft",
-          "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once successfully. Verified via read_drafts that request X4 now has a draft with the new address (12 New Street, Newtown, 33333, Exampleland) while vendor ID and name remain unchanged and the original address was not overwritten in place (new draft record created)."
+          "reason": "Draft for request X4 (vendor V2) was saved successfully after a simulated single failure and a successful retry. Verified via read_drafts: address updated to 12 New Street, Newtown, 33333, Exampleland, without altering vendor ID/name or original address. No duplicate draft existed prior to this save."
         },
-        "id": "toolu_01F4xGHvESRQQhB5FK24yT9Z"
+        "id": "toolu_01WTvWCgpZQGPzrLCfQniDG6"
       }
     ]
   },
@@ -216,7 +216,7 @@
     "tool": "finish",
     "input": {
       "status": "draft",
-      "reason": "Vendor V2 (Northstar Supplies East) resolved unambiguously. First save attempt failed due to simulated failure switch; retried once successfully. Verified via read_drafts that request X4 now has a draft with the new address (12 New Street, Newtown, 33333, Exampleland) while vendor ID and name remain unchanged and the original address was not overwritten in place (new draft record created)."
+      "reason": "Draft for request X4 (vendor V2) was saved successfully after a simulated single failure and a successful retry. Verified via read_drafts: address updated to 12 New Street, Newtown, 33333, Exampleland, without altering vendor ID/name or original address. No duplicate draft existed prior to this save."
     },
     "output": {
       "acknowledged": true
