@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Literal, Optional
 
 from anthropic import Anthropic, APIStatusError, RateLimitError
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from portal_client import PortalClient
 
@@ -99,6 +99,18 @@ class _StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+def _strip_nonempty(value: str) -> str:
+    """Shared validator: a whitespace-only string must not pass a
+    min_length=1 check as if it were real content -- Pydantic's min_length
+    only counts raw characters, so " " alone would otherwise satisfy it and
+    silently become an empty/degenerate lookup downstream (e.g. an empty
+    vendor-name search matching every vendor as 'ambiguous')."""
+    stripped = value.strip()
+    if not stripped:
+        raise ValueError("must not be empty or whitespace-only")
+    return stripped
+
+
 class ListVendorsInput(_StrictModel):
     pass
 
@@ -106,9 +118,13 @@ class ListVendorsInput(_StrictModel):
 class ResolveVendorInput(_StrictModel):
     vendor_id_or_name: str = Field(min_length=1)
 
+    _strip = field_validator("vendor_id_or_name")(_strip_nonempty)
+
 
 class CheckExistingDraftInput(_StrictModel):
     request_id: str = Field(min_length=1)
+
+    _strip = field_validator("request_id")(_strip_nonempty)
 
 
 class AttemptSaveInput(_StrictModel):
@@ -118,6 +134,8 @@ class AttemptSaveInput(_StrictModel):
     city: str
     postal_code: str
     country: str
+
+    _strip_ids = field_validator("request_id", "vendor_id")(_strip_nonempty)
 
 
 class ReadDraftsInput(_StrictModel):
@@ -260,13 +278,19 @@ class _ControllerState:
 
 
 def _resolve_vendor(client: PortalClient, vendor_id_or_name: str) -> dict:
+    # Callers pass ResolveVendorInput.vendor_id_or_name, already guaranteed
+    # non-empty and whitespace-stripped by that model's validator -- no
+    # need to re-strip here, and this keeps the exact-ID and by-name
+    # branches consistently normalized (a prior version only stripped in
+    # the by-name branch, so " V1 " matched nothing by ID but could have
+    # spuriously matched by substring in the name branch).
     vendors = client.list_vendors()
     by_id = [v for v in vendors if v["vendor_id"] == vendor_id_or_name]
     if by_id:
         original = client.select_vendor(vendor_id_or_name)
         return {"match": by_id[0], "original_address": original}
 
-    needle = vendor_id_or_name.strip().lower()
+    needle = vendor_id_or_name.lower()
     by_name = [v for v in vendors if needle in v["name"].lower()]
     if len(by_name) == 1:
         original = client.select_vendor(by_name[0]["vendor_id"])
@@ -390,6 +414,12 @@ def _execute_tool(
         # decide ambiguity here (that already happened via resolve_vendor).
         addr = client.select_vendor(validated.vendor_id)
         if addr is None:
+            # Deliberately asymmetric with resolve_vendor's not_found (which
+            # is is_error=False, a legitimate lookup outcome): reaching here
+            # means the model already attempted a SAVE with a vendor_id that
+            # doesn't exist -- either it skipped resolve_vendor and guessed,
+            # or ignored resolve_vendor's own not_found report. Either way
+            # this is a misuse of attempt_save, not a neutral lookup result.
             return ToolExecutionResult(
                 {"reason": "vendor_id does not exist; call finish(unresolved)."}, is_error=True
             )

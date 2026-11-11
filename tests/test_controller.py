@@ -102,6 +102,24 @@ def test_execute_tool_rejects_empty_string_for_min_length_field(portal):
     assert result.is_error is True
 
 
+def test_execute_tool_rejects_whitespace_only_string(portal):
+    # Regression test: Pydantic's min_length=1 only counts raw characters,
+    # so a whitespace-only string would otherwise pass validation and
+    # silently become an empty/degenerate lookup downstream.
+    result = _execute_tool("resolve_vendor", {"vendor_id_or_name": "   "}, portal, _state())
+    assert result.is_error is True
+
+
+def test_resolve_vendor_tool_strips_surrounding_whitespace_for_exact_id_match(portal):
+    # Regression test: the exact-ID branch previously didn't strip while the
+    # by-name branch did, so " V1 " matched neither consistently. The strip
+    # now happens in ResolveVendorInput's validator, upstream of
+    # _resolve_vendor -- test through _execute_tool to exercise that chain.
+    result = _execute_tool("resolve_vendor", {"vendor_id_or_name": " V1 "}, portal, _state())
+    assert result.is_error is False
+    assert result.payload["match"]["vendor_id"] == "V1"
+
+
 def test_execute_tool_unknown_tool_name_is_recoverable_not_fatal(portal):
     result = _execute_tool("delete_everything", {}, portal, _state())
     assert result.is_error is True
