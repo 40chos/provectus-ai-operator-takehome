@@ -9,9 +9,27 @@
         "input": {
           "request_id": "X2"
         },
-        "id": "toolu_01Bjyu7ya9q2gi61owP2y1E4"
+        "id": "toolu_0184MTKyqSR84kdn7LEQrept"
       }
-    ]
+    ],
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 1839
+      },
+      "cache_creation_input_tokens": 1839,
+      "cache_read_input_tokens": 0,
+      "inference_geo": "global",
+      "input_tokens": 2,
+      "output_tokens": 273,
+      "output_tokens_details": {
+        "thinking_tokens": 217
+      },
+      "server_tool_use": null,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "latency_s": 3.38
   },
   {
     "step": 0,
@@ -23,7 +41,8 @@
     "output": {
       "exists": false,
       "draft": null
-    }
+    },
+    "is_error": false
   },
   {
     "step": 1,
@@ -31,18 +50,36 @@
     "content": [
       {
         "type": "text",
-        "text": "No existing draft for this request. The request includes an empty `country` field, which is a required field for the address update. Per the rules, I must not submit a save with an empty required field."
+        "text": "No existing draft, but the request itself is missing the required **country** field. Per the rules, I must not submit a save with an empty required field."
       },
       {
         "type": "tool_use",
         "name": "finish",
         "input": {
           "status": "needs-information",
-          "reason": "Request X2 for vendor V5 is missing a required field: 'country' is empty. Cannot save an address update with a blank required field. Please provide the country value to proceed."
+          "reason": "Request X2 for vendor V5 is missing the required 'country' field (empty string). Cannot save address update until country is provided."
         },
-        "id": "toolu_01EPt7QJ2bQw8RMFLQMgYjd8"
+        "id": "toolu_01EEp2NyzWme5TjZLUcePBfv"
       }
-    ]
+    ],
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 290
+      },
+      "cache_creation_input_tokens": 290,
+      "cache_read_input_tokens": 1839,
+      "inference_geo": "global",
+      "input_tokens": 2,
+      "output_tokens": 152,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": null,
+      "service_tier": "standard",
+      "speed": "standard"
+    },
+    "latency_s": 1.841
   },
   {
     "step": 1,
@@ -50,10 +87,11 @@
     "tool": "finish",
     "input": {
       "status": "needs-information",
-      "reason": "Request X2 for vendor V5 is missing a required field: 'country' is empty. Cannot save an address update with a blank required field. Please provide the country value to proceed."
+      "reason": "Request X2 for vendor V5 is missing the required 'country' field (empty string). Cannot save address update until country is provided."
     },
     "output": {
       "acknowledged": true
-    }
+    },
+    "is_error": false
   }
 ]
